@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:emib_hospital/user/firstpage/login.dart';
+import 'package:emib_hospital/user/firstpage/signup.dart';
 
 void main() {
   runApp(const MyApp());
@@ -18,7 +19,8 @@ class MyApp extends StatelessWidget {
       ),
       home: const WelcomeScreen(), // Main screen
       routes: {
-        '/login': (context) => const LoginPage(), // Registering the login route
+        '/login': (context) => const LoginPage(),
+        '/Signup': (context) => const SigninPage(),
       },
     );
   }

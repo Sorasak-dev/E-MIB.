@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:emib_hospital/user/firstpage/signup.dart';
-import 'package:emib_hospital/user/firstpage/forgetpassword.dart';
 
 void main() {
   runApp(const MyApp());
@@ -17,13 +15,13 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const LoginPage(),
+      home: const Forgetpassword(),
     );
   }
 }
 
-class LoginPage extends StatelessWidget {
-  const LoginPage({super.key});
+class Forgetpassword extends StatelessWidget {
+  const Forgetpassword({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +31,7 @@ class LoginPage extends StatelessWidget {
           Container(
             decoration: const BoxDecoration(
               image: DecorationImage(
-                image: AssetImage('assets/login.png'),
+                image: AssetImage('assets/reset.png'),
                 fit: BoxFit.cover,
               ),
             ),
@@ -58,7 +56,7 @@ class LoginPage extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           const Text(
-                            'Login to your Account',
+                            'Reset your Password',
                             textAlign: TextAlign.left,
                             style: TextStyle(
                               fontSize: 18,
@@ -78,20 +76,7 @@ class LoginPage extends StatelessWidget {
                               ),
                             ),
                           ),
-                          const SizedBox(height: 10),
-                          // รหัส
-                          TextField(
-                            obscureText: true,
-                            decoration: InputDecoration(
-                              hintText: 'Password',
-                              filled: true,
-                              fillColor: Colors.white,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(7),
-                                borderSide: BorderSide.none,
-                              ),
-                            ),
-                          ),
+
                           const SizedBox(height: 20),
                           // ปุ่มกดล้อกอินอันม่วงๆ
                           Align(
@@ -108,65 +93,13 @@ class LoginPage extends StatelessWidget {
                                   backgroundColor: const Color(0xffCBCAFF),
                                 ),
                                 onPressed: () {},
-                                child: const Text('Log in'),
+                                child: const Text('Reset'),
                               ),
                             ),
                           ),
                         ],
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 10),
-
-                  GestureDetector(
-                    onTap: () {
-                      // ใช้ Navigator.push เพื่อนำทางไปที่หน้า SignInPage หรือ SignUpPage
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              const Forgetpassword(), // แก้ไขตามหน้า SignInPage ที่คุณมี
-                        ),
-                      );
-                    },
-                    child: const Text(
-                      'Forgot Password?',
-                      style: TextStyle(
-                        color: Colors.blueAccent,
-                        fontSize: 14,
-                        decoration: TextDecoration.underline,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text(
-                        "Don't have an account? ",
-                      ),
-                      GestureDetector(
-                        onTap: () {
-                          // ใช้ Navigator.push เพื่อนำทางไปที่หน้า SignInPage หรือ SignUpPage
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  const SigninPage(), // แก้ไขตามหน้า SignInPage ที่คุณมี
-                            ),
-                          );
-                        },
-                        child: const Text(
-                          'Sign Up',
-                          style: TextStyle(
-                            color: Colors.blueAccent,
-                            fontWeight: FontWeight.bold,
-                            decoration: TextDecoration.underline,
-                          ),
-                        ),
-                      ),
-                    ],
                   ),
                 ],
               ),
