@@ -6,6 +6,11 @@ import 'package:emib_hospital/tab/fruit_tab.dart';
 import 'package:emib_hospital/tab/vegetable_tab.dart';
 import 'package:emib_hospital/util/my_tab.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+
+void main() {
+  runApp(const NewsPages());
+}
+
  class NewsPages extends StatefulWidget {
   const NewsPages({super.key});
 
