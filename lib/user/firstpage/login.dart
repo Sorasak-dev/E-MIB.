@@ -1,29 +1,50 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:emib_hospital/user/firstpage/signup.dart';
 import 'package:emib_hospital/user/firstpage/forgetpassword.dart';
+import 'package:emib_hospital/user/homepage.dart';
 
-void main() {
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class LoginPage extends StatefulWidget {
+  const LoginPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: const LoginPage(),
-    );
-  }
+  State<LoginPage> createState() => _LoginPageState();
 }
 
-class LoginPage extends StatelessWidget {
-  const LoginPage({super.key});
+class _LoginPageState extends State<LoginPage> {
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  Future<void> _login() async {
+    try {
+      // ล็อกอินด้วยอีเมลและรหัสผ่าน
+      await _auth.signInWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
+
+      // ถ้าล็อกอินสำเร็จ ไปที่หน้า HomePage
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => MyHomePage()),
+      );
+    } on FirebaseAuthException catch (e) {
+      // แสดงข้อความแจ้งเตือนเมื่อเกิดข้อผิดพลาด
+      String message = '';
+      if (e.code == 'user-not-found') {
+        message = 'User not found. Please check your email.';
+      } else if (e.code == 'wrong-password') {
+        message = 'Incorrect password. Please try again.';
+      } else {
+        message = 'Login failed. Please try again.';
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message)),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +66,6 @@ class LoginPage extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const SizedBox(height: 70),
-                  // กล่องเร้กๆ
                   Card(
                     elevation: 10,
                     shape: RoundedRectangleBorder(
@@ -66,8 +86,8 @@ class LoginPage extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 20),
-                          // เมล
                           TextField(
+                            controller: _emailController,
                             decoration: InputDecoration(
                               hintText: 'Email',
                               filled: true,
@@ -79,8 +99,8 @@ class LoginPage extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 10),
-                          // รหัส
                           TextField(
+                            controller: _passwordController,
                             obscureText: true,
                             decoration: InputDecoration(
                               hintText: 'Password',
@@ -93,7 +113,6 @@ class LoginPage extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 20),
-                          // ปุ่มกดล้อกอินอันม่วงๆ
                           Align(
                             alignment: Alignment.center,
                             child: SizedBox(
@@ -107,7 +126,7 @@ class LoginPage extends StatelessWidget {
                                   ),
                                   backgroundColor: const Color(0xffCBCAFF),
                                 ),
-                                onPressed: () {},
+                                onPressed: _login,
                                 child: const Text('Log in'),
                               ),
                             ),
@@ -118,14 +137,13 @@ class LoginPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 10),
 
+                  // ลิงก์ไปยัง Forget Password
                   GestureDetector(
                     onTap: () {
-                      // ใช้ Navigator.push เพื่อนำทางไปที่หน้า SignInPage หรือ SignUpPage
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) =>
-                              const Forgetpassword(), // แก้ไขตามหน้า SignInPage ที่คุณมี
+                          builder: (context) => const Forgetpassword(),
                         ),
                       );
                     },
@@ -140,20 +158,17 @@ class LoginPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 10),
 
+                  // ลิงก์ไปยัง Sign Up
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text(
-                        "Don't have an account? ",
-                      ),
+                      const Text("Don't have an account? "),
                       GestureDetector(
                         onTap: () {
-                          // ใช้ Navigator.push เพื่อนำทางไปที่หน้า SignInPage หรือ SignUpPage
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) =>
-                                  const SigninPage(), // แก้ไขตามหน้า SignInPage ที่คุณมี
+                              builder: (context) => const SignUpPage(),
                             ),
                           );
                         },

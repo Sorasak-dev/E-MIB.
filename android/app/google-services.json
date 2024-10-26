@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "881508063332",
+    "project_id": "e-mib-hospital-ad237",
+    "storage_bucket": "e-mib-hospital-ad237.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:881508063332:android:5e88e015f315a2e3cfa771",
+        "android_client_info": {
+          "package_name": "com.example.emib_hospital"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDplz0TxJfcIxvqueEGVSWkR8FXX8eqbdE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

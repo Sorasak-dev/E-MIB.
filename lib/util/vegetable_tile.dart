@@ -7,15 +7,14 @@ class vegetableTile extends StatelessWidget {
   final String imageName;
   final String bloodPressureType; // เพิ่มพารามิเตอร์ใหม่
 
-
   const vegetableTile({
     super.key,
     required this.vegetableFlovor,
     //required this.vegetablePrice,
     required this.vegetableColor,
     required this.imageName,
-    required this.bloodPressureType, 
-    });
+    required this.bloodPressureType,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -23,10 +22,8 @@ class vegetableTile extends StatelessWidget {
       padding: const EdgeInsets.all(12.0),
       child: Container(
         decoration: BoxDecoration(
-          color: vegetableColor[50],
-          borderRadius: BorderRadius.circular(12)
-        ),
-        child:  Column(
+            color: vegetableColor[50], borderRadius: BorderRadius.circular(12)),
+        child: Column(
           children: [
             //price
             /*Row(
@@ -54,15 +51,16 @@ class vegetableTile extends StatelessWidget {
 
             //vegetable picture
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 30.0,vertical: 20),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 30.0, vertical: 20),
               child: Image.asset(imageName),
             ),
             //vegetable flavor
             Text(
               vegetableFlovor,
               style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
               ),
             ),
             const SizedBox(height: 4),
@@ -86,8 +84,7 @@ class vegetableTile extends StatelessWidget {
                     Icons.favorite,
                     color: Colors.pink[400],
                   ),
-                  
-              
+
                   //plus button
                   Icon(
                     Icons.add,
@@ -101,6 +98,7 @@ class vegetableTile extends StatelessWidget {
       ),
     );
   }
+
   String _getBloodPressureText(String type) {
     switch (type) {
       case 'low':
