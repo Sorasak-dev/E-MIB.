@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:emib_hospital/Nevigation/notification_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -102,7 +103,12 @@ class _MyHomePageState extends State<MyHomePage> {
                             padding: const EdgeInsets.only(bottom: 80.0),
                             child: ElevatedButton(
                               onPressed: () {
-                                // โค้ดสำหรับการกระทำของปุ่ม "More"
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) =>
+                                          NotificationPage()), // ไปหน้า Noti
+                                );
                               },
                               child: Text('More'),
                               style: ElevatedButton.styleFrom(
