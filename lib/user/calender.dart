@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'dart:developer';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 void main() {
   runApp(MyApp());
@@ -19,6 +21,11 @@ class MyApp extends StatelessWidget {
 }
 
 class BloodPressureLogger extends StatefulWidget {
+
+  final String? userId;
+
+  const BloodPressureLogger({Key? key, this.userId}) : super(key: key);
+
   @override
   _BloodPressureLoggerState createState() => _BloodPressureLoggerState();
 }
@@ -31,6 +38,7 @@ class _BloodPressureLoggerState extends State<BloodPressureLogger> {
       TextEditingController(); // สำหรับบันทึก DIA
   TextEditingController _pulController =
       TextEditingController(); // สำหรับบันทึก PUL
+
 
   // เก็บค่าที่บันทึกใน Map
   Map<DateTime, Map<String, int>> _savedRecords = {};
@@ -108,8 +116,9 @@ class _BloodPressureLoggerState extends State<BloodPressureLogger> {
   }
 
   // ฟังก์ชันบันทึกข้อมูล
-  void _saveRecord() {
+  Future<void> _saveRecord() async {
     setState(() {
+      log("UserId: ${widget.userId}");
       // บันทึกค่าที่กรอกใน Map
       _savedRecords[_selectedDay] = {
         'SYS': int.parse(_sysController.text),
@@ -117,6 +126,47 @@ class _BloodPressureLoggerState extends State<BloodPressureLogger> {
         'PUL': int.parse(_pulController.text),
       };
     });
+
+    // สร้าง documentId ที่จะใช้ในการเช็ค
+    String documentId = widget.userId! + _selectedDay.toIso8601String();
+    // ตรวจสอบว่ามี document อยู่แล้วหรือไม่
+    DocumentReference docRef = FirebaseFirestore.instance
+        .collection('blood_pressure_records')
+        .doc(documentId);
+
+
+    try {
+      DocumentSnapshot docSnapshot = await docRef.get();
+
+      if (docSnapshot.exists) {
+        // ถ้ามี document อยู่แล้ว อัปเดตข้อมูล
+        await docRef.update({
+          'SYS': int.parse(_sysController.text),
+          'DIA': int.parse(_diaController.text),
+          'PUL': int.parse(_pulController.text),
+          'date': _selectedDay,
+        });
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('อัปเดตข้อมูลสำเร็จสำหรับวันที่ $_selectedDay'),
+        ));
+      } else {
+        // ถ้าไม่มี document ให้สร้างใหม่
+        await docRef.set({
+          'userId': widget.userId,
+          'date': _selectedDay,
+          'SYS': int.parse(_sysController.text),
+          'DIA': int.parse(_diaController.text),
+          'PUL': int.parse(_pulController.text),
+        });
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('บันทึกข้อมูลสำเร็จสำหรับวันที่ $_selectedDay'),
+        ));
+      }
+    } catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('เกิดข้อผิดพลาดในการบันทึกข้อมูล: $error'),
+      ));
+    }
 
     // แสดงข้อความยืนยันการบันทึก
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(

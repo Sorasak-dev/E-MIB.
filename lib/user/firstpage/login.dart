@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:emib_hospital/user/firstpage/signup.dart';
@@ -19,15 +21,18 @@ class _LoginPageState extends State<LoginPage> {
   Future<void> _login() async {
     try {
       // ล็อกอินด้วยอีเมลและรหัสผ่าน
-      await _auth.signInWithEmailAndPassword(
+      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
 
+      // ดึงข้อมูลผู้ใช้ที่ล็อกอินสำเร็จ
+      User? user = userCredential.user;
+      log("UserId: $user ");
       // ถ้าล็อกอินสำเร็จ ไปที่หน้า HomePage
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => MyHomePage()),
+        MaterialPageRoute(builder: (context) => MyHomePage(userId: user?.uid)),
       );
     } on FirebaseAuthException catch (e) {
       // แสดงข้อความแจ้งเตือนเมื่อเกิดข้อผิดพลาด

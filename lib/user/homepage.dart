@@ -1,3 +1,4 @@
+import 'package:emib_hospital/user/calender.dart';
 import 'package:flutter/material.dart';
 import 'package:emib_hospital/Nevigation/notification_page.dart';
 
@@ -21,6 +22,10 @@ class MyApp extends StatelessWidget {
 }
 
 class MyHomePage extends StatefulWidget {
+  final String? userId;
+
+  const MyHomePage({Key? key, this.userId}) : super(key: key);
+
   @override
   _MyHomePageState createState() => _MyHomePageState();
 }
@@ -87,15 +92,62 @@ class _MyHomePageState extends State<MyHomePage> {
                         Align(
                           alignment:
                               Alignment(circlePositionX, circlePositionY),
-                          child: Container(
-                            width: circleSize, // ขนาดวงกลม
-                            height: circleSize,
-                            decoration: BoxDecoration(
-                              color: Colors.green,
-                              shape: BoxShape.circle,
-                            ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'Today', // ข้อความที่ต้องการใส่เหนือวงกลม
+                                style: TextStyle(
+                                  fontSize: 24, // ขนาดตัวอักษร
+                                  color: Colors.grey, // สีตัวอักษร
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Text(
+                                'Normal', // ข้อความที่ต้องการใส่เหนือวงกลม
+                                style: TextStyle(
+                                  fontSize: 40, // ขนาดตัวอักษร
+                                  color: Colors.blueAccent, // สีตัวอักษร
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              SizedBox(
+                                  height: 10), // ระยะห่างระหว่างข้อความและวงกลม
+                              Container(
+                                width: circleSize,
+                                height: circleSize,
+                                decoration: BoxDecoration(
+                                  color: Color(0xFFA6E1A1),
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: Colors.white, // สีขอบ
+                                    width: 2, // ความกว้างของขอบ
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.4),
+                                      spreadRadius: 3,
+                                      blurRadius: 7,
+                                      offset:
+                                          Offset(6, 12), // เงาในแนวตั้งเท่านั้น
+                                    ),
+                                  ],
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    '${DateTime.now().day}', // ใส่วันปัจจุบันในวงกลม
+                                    style: TextStyle(
+                                      fontSize: 90,
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
+
                         // ปุ่ม More ที่มีพื้นหลังสีขาวและตัวอักษรสีฟ้า
                         Align(
                           alignment: Alignment.bottomCenter,
