@@ -1,6 +1,7 @@
 import 'package:emib_hospital/user/calender.dart';
 import 'package:flutter/material.dart';
 import 'package:emib_hospital/Nevigation/notification_page.dart';
+import 'package:emib_hospital/user/firstpage/setting.dart';
 
 void main() {
   runApp(const MyApp());
@@ -159,7 +160,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                   context,
                                   MaterialPageRoute(
                                       builder: (context) =>
-                                          NotificationPage()), // ไปหน้า Noti
+                                          SettingsPage()), // ไปหน้า Noti
                                 );
                               },
                               child: Text('More'),
