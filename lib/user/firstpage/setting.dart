@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:emib_hospital/user/firstpage/login.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -26,6 +27,73 @@ class _SettingsPageState extends State<SettingsPage> {
       setState(() {
         _profileImage = pickedImage;
       });
+    }
+  }
+
+  Future<void> _deleteAccount() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+
+      if (user != null) {
+        // แสดง Dialog เพื่อยืนยันการลบ
+        final bool? confirm = await showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: const Text('Delete Account'),
+              content: const Text(
+                  'Are you sure you want to delete your account? This action cannot be undone.'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  child: const Text('Delete'),
+                ),
+              ],
+            );
+          },
+        );
+
+        if (confirm == true) {
+          // ลบบัญชีผู้ใช้
+          await user.delete();
+
+          // แสดงข้อความสำเร็จ
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Account deleted successfully.'),
+              backgroundColor: Colors.green,
+            ),
+          );
+
+          // นำผู้ใช้กลับไปยังหน้า LoginPage
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => const LoginPage()),
+            (route) => false,
+          );
+        }
+      }
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'requires-recent-login') {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+                'You need to re-login before deleting your account. Please log out and log in again.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${e.message}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -102,7 +170,6 @@ class _SettingsPageState extends State<SettingsPage> {
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
-                // เมื่อกด Log out ให้เปลี่ยนไปที่หน้า LoginPage
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(builder: (context) => const LoginPage()),
@@ -115,6 +182,17 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
               ),
               child: const Text('Log out'),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: _deleteAccount,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.redAccent,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+              ),
+              child: const Text('Delete Account'),
             ),
           ],
         ),
