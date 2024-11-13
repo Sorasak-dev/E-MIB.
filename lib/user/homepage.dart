@@ -67,9 +67,20 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
               ],
             ),
-            Icon(
-              Icons.notifications,
-              color: Colors.black,
+            IconButton(
+              icon: const Icon(
+                Icons.notifications,
+                color: Colors.black,
+              ),
+              onPressed: () {
+                // นำทางไปยังหน้า NotificationPage
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => NotificationPage(),
+                  ),
+                );
+              },
             ),
           ],
         ),
