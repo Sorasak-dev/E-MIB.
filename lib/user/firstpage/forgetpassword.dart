@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 void main() {
   runApp(const MyApp());
@@ -20,8 +21,45 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class Forgetpassword extends StatelessWidget {
+class Forgetpassword extends StatefulWidget {
   const Forgetpassword({super.key});
+
+  @override
+  State<Forgetpassword> createState() => _ForgetpasswordState();
+}
+
+class _ForgetpasswordState extends State<Forgetpassword> {
+  final TextEditingController _emailController = TextEditingController();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  Future<void> _resetPassword() async {
+    final String email = _emailController.text.trim();
+
+    if (email.isEmpty) {
+      _showSnackbar('Please enter your email.');
+      return;
+    }
+
+    try {
+      await _auth.sendPasswordResetEmail(email: email);
+      _showSnackbar('Password reset email sent. Please check your inbox.');
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'user-not-found') {
+        _showSnackbar('No user found with this email.');
+      } else {
+        _showSnackbar('An error occurred: ${e.message}');
+      }
+    }
+  }
+
+  void _showSnackbar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.black87,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +81,7 @@ class Forgetpassword extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const SizedBox(height: 70),
-                  // กล่องเร้กๆ
+                  // Card สำหรับกล่องรีเซ็ตรหัสผ่าน
                   Card(
                     elevation: 10,
                     shape: RoundedRectangleBorder(
@@ -64,8 +102,9 @@ class Forgetpassword extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 20),
-                          // เมล
+                          // ช่องกรอก Email
                           TextField(
+                            controller: _emailController,
                             decoration: InputDecoration(
                               hintText: 'Email',
                               filled: true,
@@ -78,7 +117,7 @@ class Forgetpassword extends StatelessWidget {
                           ),
 
                           const SizedBox(height: 20),
-                          // ปุ่มกดล้อกอินอันม่วงๆ
+                          // ปุ่ม Reset Password
                           Align(
                             alignment: Alignment.center,
                             child: SizedBox(
@@ -92,7 +131,7 @@ class Forgetpassword extends StatelessWidget {
                                   ),
                                   backgroundColor: const Color(0xffCBCAFF),
                                 ),
-                                onPressed: () {},
+                                onPressed: _resetPassword,
                                 child: const Text('Reset'),
                               ),
                             ),
