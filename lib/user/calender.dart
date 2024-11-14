@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -40,6 +41,12 @@ class _BloodPressureLoggerState extends State<BloodPressureLogger> {
       TextEditingController(); // สำหรับบันทึก PUL
 
 
+  @override
+  void initState() {
+    super.initState();
+    _fetchRecord(_selectedDay);
+  }
+
   // เก็บค่าที่บันทึกใน Map
   Map<DateTime, Map<String, int>> _savedRecords = {};
 
@@ -56,6 +63,10 @@ class _BloodPressureLoggerState extends State<BloodPressureLogger> {
             firstDay: DateTime.utc(2020, 1, 1),
             lastDay: DateTime.utc(2030, 12, 31),
             focusedDay: _selectedDay,
+            headerStyle: HeaderStyle(
+              titleCentered: true,
+              formatButtonVisible: false,
+            ),
             selectedDayPredicate: (day) {
               return isSameDay(
                   _selectedDay, day); // เช็คว่าวันที่เลือกตรงกันหรือไม่
@@ -64,30 +75,77 @@ class _BloodPressureLoggerState extends State<BloodPressureLogger> {
               setState(() {
                 _selectedDay = selectedDay; // อัปเดตวันที่เมื่อเลือก
               });
+              _fetchRecord(selectedDay); // เรียกฟังก์ชันดึงข้อมูล
             },
           ),
           SizedBox(height: 20),
           // แบบฟอร์มบันทึกความดัน
           Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _buildTextField('SYS', _sysController),
-                    _buildTextField('DIA', _diaController),
-                    _buildTextField('PUL', _pulController),
-                  ],
-                ),
-                SizedBox(height: 10),
-                ElevatedButton(
-                  onPressed: () {
-                    _saveRecord(); // ฟังก์ชันสำหรับบันทึกค่า
-                  },
-                  child: Text('บันทึก'),
-                ),
-              ],
+            padding: const EdgeInsets.all(16.0),
+            child: Container(
+              padding: EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Color(0xFFF5EAD4),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Column(
+                children: [
+                  Text(
+                    DateFormat('d MMMM').format(_selectedDay),
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 5),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      _buildTextField('SYS', _sysController, 'mmHg'),
+                    ],
+                  ),
+                  SizedBox(height: 5),
+                  Container(
+                    width: double.infinity, // กำหนดความกว้างของเส้น
+                    height: 1.0, // ความหนาของเส้น
+                    decoration: BoxDecoration(
+                      color: Colors.black, // สีของเส้น
+                    ),
+                  ),
+                  SizedBox(height: 5),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      _buildTextField('DIA', _diaController, 'mmHg'),
+                    ],
+                  ),
+                  SizedBox(height: 5),
+                  Container(
+                    width: double.infinity, // กำหนดความกว้างของเส้น
+                    height: 1.0, // ความหนาของเส้น
+                    decoration: BoxDecoration(
+                      color: Colors.black, // สีของเส้น
+                    ),
+                  ),
+                  SizedBox(height: 5),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      _buildTextField('PUL', _pulController, 'min     '),
+                    ],
+                  ),
+                  SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: () {
+                      _saveRecord();
+                    },
+                    style: ElevatedButton.styleFrom(
+                      padding: EdgeInsets.symmetric(horizontal: 30, vertical: 10),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                    ),
+                    child: Text('save', style: TextStyle(fontSize: 16)),
+                  ),
+                ],
+              ),
             ),
           ),
         ],
@@ -96,21 +154,31 @@ class _BloodPressureLoggerState extends State<BloodPressureLogger> {
   }
 
   // ฟังก์ชันสร้างช่องกรอกข้อมูล
-  Widget _buildTextField(String label, TextEditingController controller) {
-    return Column(
+  Widget _buildTextField(
+      String label, TextEditingController controller, String unit) {
+    return Row(
       children: [
-        Text(label), // แสดงชื่อ เช่น SYS, DIA, PUL
+        Text(label, style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+        SizedBox(width: 30),
         SizedBox(
-          width: 70,
+          height: 40,
+          width: 60,
           child: TextField(
             controller: controller,
-            keyboardType: TextInputType.number, // รับเฉพาะตัวเลข
+            keyboardType: TextInputType.number,
+            textAlign: TextAlign.center,
             decoration: InputDecoration(
-              border: OutlineInputBorder(),
-              hintText: 'mmHg', // ข้อความที่แสดงในช่องกรอก
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              contentPadding: EdgeInsets.symmetric(vertical: 8),
+              filled: true,
+              fillColor: Colors.white,
             ),
           ),
         ),
+        SizedBox(width: 30),
+        Text(unit, style: TextStyle(fontSize: 14, color: Colors.grey)),
       ],
     );
   }
@@ -127,53 +195,79 @@ class _BloodPressureLoggerState extends State<BloodPressureLogger> {
       };
     });
 
-    // สร้าง documentId ที่จะใช้ในการเช็ค
-    String documentId = widget.userId! + _selectedDay.toIso8601String();
-    // ตรวจสอบว่ามี document อยู่แล้วหรือไม่
-    DocumentReference docRef = FirebaseFirestore.instance
-        .collection('blood_pressure_records')
-        .doc(documentId);
-
+    String currentDate = DateFormat('yyyy-MM-dd').format(_selectedDay);
+    log(currentDate);
 
     try {
-      DocumentSnapshot docSnapshot = await docRef.get();
+      // ค้นหาเอกสารที่มี userId และ date ตรงกัน
+      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+          .collection('blood_pressure_records')
+          .where('userId', isEqualTo: widget.userId)
+          .where('date', isEqualTo: currentDate)
+          .get();
 
-      if (docSnapshot.exists) {
+      if (querySnapshot.docs.isNotEmpty) {
         // ถ้ามี document อยู่แล้ว อัปเดตข้อมูล
-        await docRef.update({
+        await querySnapshot.docs.first.reference.update({
           'SYS': int.parse(_sysController.text),
           'DIA': int.parse(_diaController.text),
           'PUL': int.parse(_pulController.text),
-          'date': _selectedDay,
+          'date': currentDate,
         });
+        log("Update ==>");
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('อัปเดตข้อมูลสำเร็จสำหรับวันที่ $_selectedDay'),
+          content: Text('อัปเดตข้อมูลสำเร็จสำหรับวันที่ $currentDate'),
         ));
       } else {
         // ถ้าไม่มี document ให้สร้างใหม่
-        await docRef.set({
+        await FirebaseFirestore.instance.collection('blood_pressure_records').add({
           'userId': widget.userId,
-          'date': _selectedDay,
+          'date': currentDate,
           'SYS': int.parse(_sysController.text),
           'DIA': int.parse(_diaController.text),
           'PUL': int.parse(_pulController.text),
         });
+        log("Insert ==>");
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('บันทึกข้อมูลสำเร็จสำหรับวันที่ $_selectedDay'),
+          content: Text('บันทึกข้อมูลสำเร็จสำหรับวันที่ $currentDate'),
         ));
       }
     } catch (error) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text('เกิดข้อผิดพลาดในการบันทึกข้อมูล: $error'),
       ));
+      _clearFields();
     }
 
-    // แสดงข้อความยืนยันการบันทึก
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text('บันทึกข้อมูลสำเร็จสำหรับวันที่ $_selectedDay'),
-    ));
+    //_clearFields(); // ล้างข้อมูลในช่องกรอกหลังบันทึก
+  }
 
-    _clearFields(); // ล้างข้อมูลในช่องกรอกหลังบันทึก
+  Future<void> _fetchRecord(DateTime selectedDay) async {
+    String currentDate = DateFormat('yyyy-MM-dd').format(selectedDay);
+    try {
+      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+          .collection('blood_pressure_records')
+          .where('userId', isEqualTo: widget.userId)
+          .where('date', isEqualTo: currentDate)
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        // ถ้ามีข้อมูลที่ตรงกับวันที่และ userId ที่เลือก
+        var data = querySnapshot.docs.first.data() as Map<String, dynamic>;
+        setState(() {
+          _sysController.text = data['SYS'].toString();
+          _diaController.text = data['DIA'].toString();
+          _pulController.text = data['PUL'].toString();
+        });
+      } else {
+        // ถ้าไม่มีข้อมูล ให้ล้างช่องกรอก
+        _clearFields();
+      }
+    } catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('เกิดข้อผิดพลาดในการดึงข้อมูล: $error'),
+      ));
+    }
   }
 
   // ฟังก์ชันล้างข้อมูลในช่องกรอก

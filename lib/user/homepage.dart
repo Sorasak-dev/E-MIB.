@@ -1,7 +1,11 @@
+import 'dart:developer';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:emib_hospital/user/calender.dart';
 import 'package:flutter/material.dart';
 import 'package:emib_hospital/Nevigation/notification_page.dart';
 import 'package:emib_hospital/user/firstpage/setting.dart';
+import 'package:intl/intl.dart';
 
 void main() {
   runApp(const MyApp());
@@ -36,6 +40,44 @@ class _MyHomePageState extends State<MyHomePage> {
   double circleSize = 200;
   double circlePositionX = 0; // ปรับตำแหน่งในแกน X
   double circlePositionY = -0.2; // ปรับตำแหน่งในแกน Y
+
+  String sysValue = "Loading...";
+  String diaValue = "Loading...";
+  String pulValue = "Loading...";
+
+  @override
+  void initState() {
+    super.initState();
+    fetchBloodPressureData();
+  }
+
+  Future<void> fetchBloodPressureData() async {
+    // กำหนดวันที่ปัจจุบันในรูปแบบ YYYY-MM-DD
+    DateTime customDate = DateTime(2024, 11, 14);
+    String currentDate = DateFormat('yyyy-MM-dd').format(customDate);
+    log(currentDate);
+    // ค้นหาข้อมูลจาก Firebase ตาม userId และวันที่
+    var snapshot = await FirebaseFirestore.instance
+        .collection('blood_pressure_records')
+        .where('userId', isEqualTo: widget.userId)
+        .where('date', isEqualTo: currentDate)
+        .get();
+    // ตรวจสอบว่ามีข้อมูลหรือไม่
+    if (snapshot.docs.isNotEmpty) {
+      var data = snapshot.docs.first.data();
+      setState(() {
+        sysValue = "${data['SYS']}";
+        diaValue = "${data['DIA']}";
+        pulValue = "${data['PUL']}";
+      });
+    } else {
+      setState(() {
+        sysValue = "No data";
+        diaValue = "No data";
+        pulValue = "No data";
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -85,201 +127,221 @@ class _MyHomePageState extends State<MyHomePage> {
           ],
         ),
       ),
-      body: SingleChildScrollView(
-        child: Column(
+      body: RefreshIndicator(
+        onRefresh: fetchBloodPressureData,
+        child: ListView(
           children: [
-            // ส่วนของวงกลมและปุ่ม More
-            Stack(
+            Column(
               children: [
-                ClipPath(
-                  clipper: CurvedClipper(),
-                  child: Container(
-                    height: MediaQuery.of(context).size.height * 0.70,
-                    decoration: BoxDecoration(
-                      color: Colors.purple[100],
-                    ),
-                    child: Stack(
-                      children: [
-                        // ปรับตำแหน่งแกน X และ Y ของวงกลม
-                        Align(
-                          alignment:
-                              Alignment(circlePositionX, circlePositionY),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                'Today', // ข้อความที่ต้องการใส่เหนือวงกลม
-                                style: TextStyle(
-                                  fontSize: 24, // ขนาดตัวอักษร
-                                  color: Colors.grey, // สีตัวอักษร
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              Text(
-                                'Normal', // ข้อความที่ต้องการใส่เหนือวงกลม
-                                style: TextStyle(
-                                  fontSize: 40, // ขนาดตัวอักษร
-                                  color: Colors.blueAccent, // สีตัวอักษร
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              SizedBox(
-                                  height: 10), // ระยะห่างระหว่างข้อความและวงกลม
-                              Container(
-                                width: circleSize,
-                                height: circleSize,
-                                decoration: BoxDecoration(
-                                  color: Color(0xFFA6E1A1),
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: Colors.white, // สีขอบ
-                                    width: 2, // ความกว้างของขอบ
-                                  ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.4),
-                                      spreadRadius: 3,
-                                      blurRadius: 7,
-                                      offset:
-                                          Offset(6, 12), // เงาในแนวตั้งเท่านั้น
-                                    ),
-                                  ],
-                                ),
-                                child: Center(
-                                  child: Text(
-                                    '${DateTime.now().day}', // ใส่วันปัจจุบันในวงกลม
+                // ส่วนของวงกลมและปุ่ม More
+                Stack(
+                  children: [
+                    ClipPath(
+                      clipper: CurvedClipper(),
+                      child: Container(
+                        height: MediaQuery.of(context).size.height * 0.70,
+                        decoration: BoxDecoration(
+                          color: Colors.purple[100],
+                        ),
+                        child: Stack(
+                          children: [
+                            // ปรับตำแหน่งแกน X และ Y ของวงกลม
+                            Align(
+                              alignment: Alignment(circlePositionX, circlePositionY),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    'Today',
                                     style: TextStyle(
-                                      fontSize: 90,
-                                      color: Colors.black,
+                                      fontSize: 24,
+                                      color: Colors.grey,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        // ปุ่ม More ที่มีพื้นหลังสีขาวและตัวอักษรสีฟ้า
-                        Align(
-                          alignment: Alignment.bottomCenter,
-                          child: Padding(
-                            padding: const EdgeInsets.only(bottom: 80.0),
-                            child: ElevatedButton(
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) =>
-                                          SettingsPage()), // ไปหน้า Noti
-                                );
-                              },
-                              child: Text('More'),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.white, // พื้นหลังสีขาว
-                                foregroundColor: Colors.blue, // ตัวอักษรสีฟ้า
-                                padding: EdgeInsets.symmetric(
-                                    horizontal: 40, vertical: 15),
-                                textStyle: TextStyle(fontSize: 16),
+                                  Text(
+                                    'Normal',
+                                    style: TextStyle(
+                                      fontSize: 40,
+                                      color: Colors.blueAccent,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  SizedBox(height: 10),
+                                  Container(
+                                    width: circleSize,
+                                    height: circleSize,
+                                    decoration: BoxDecoration(
+                                      color: Color(0xFFA6E1A1),
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color: Colors.white,
+                                        width: 2,
+                                      ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withOpacity(0.4),
+                                          spreadRadius: 3,
+                                          blurRadius: 7,
+                                          offset: Offset(6, 12),
+                                        ),
+                                      ],
+                                    ),
+                                    child: Center(
+                                      child: Text(
+                                        '${DateTime.now().day}',
+                                        style: TextStyle(
+                                          fontSize: 90,
+                                          color: Colors.black,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(height: 20),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                    children: [
+                                      _buildStatCard('SYS', "mmHg" ,sysValue),
+                                      _buildStatCard('DIA', "mmHg" ,diaValue),
+                                      _buildStatCard('PUL', "min" ,pulValue),
+                                    ],
+                                  ),
+                                ],
                               ),
                             ),
-                          ),
+                            Align(
+                              alignment: Alignment.bottomCenter,
+                              child: Padding(
+                                padding: const EdgeInsets.only(bottom: 80.0),
+                                child: ElevatedButton(
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) =>
+                                              BloodPressureLogger(userId: widget.userId)),
+                                    );
+                                  },
+                                  child: Text('More'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.white,
+                                    foregroundColor: Colors.blue,
+                                    padding: EdgeInsets.symmetric(
+                                        horizontal: 40, vertical: 15),
+                                    textStyle: TextStyle(fontSize: 16),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
+                  ],
+                ),
+                SizedBox(height: 20),
+                // ส่วนของ 3 กล่องข้อมูล
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      Expanded(
+                        child: AspectRatio(
+                          aspectRatio: 3 / 4,
+                          child: _buildInfoCard('why it important', Colors.orange[100]),
+                        ),
+                      ),
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: AspectRatio(
+                          aspectRatio: 3 / 4,
+                          child: _buildInfoCard('24/7 Medicine', Colors.yellow[100]),
+                        ),
+                      ),
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: AspectRatio(
+                          aspectRatio: 3 / 4,
+                          child: _buildInfoCard('Find The Doctors Near You', Colors.blue[100]),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: 30),
+                // ส่วนของ "3 Easy steps"
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '3 Easy steps \nhelp you start',
+                        style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
+                      ),
+                      SizedBox(height: 10),
+                      IntrinsicHeight(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: _buildStepCard(
+                                '1',
+                                'sign in and create your profile',
+                                Colors.orange[100],
+                              ),
+                            ),
+                            SizedBox(width: 8),
+                            Expanded(
+                              child: _buildStepCard(
+                                '2',
+                                'measure your Blood pressure and Record',
+                                Colors.blue[100],
+                              ),
+                            ),
+                            SizedBox(width: 8),
+                            Expanded(
+                              child: _buildStepCard(
+                                '3',
+                                'Get you advice and select your daily plan',
+                                Colors.lightBlue[100],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
-            ),
-            SizedBox(height: 20),
-
-            // ส่วนของ 3 กล่องข้อมูล
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 8.0), // ลดระยะขอบข้างลง
-              child: Row(
-                mainAxisAlignment:
-                    MainAxisAlignment.spaceEvenly, // จัดให้มีช่องว่างเท่าๆ กัน
-                children: [
-                  Expanded(
-                    child: AspectRatio(
-                      aspectRatio: 3 / 4, // อัตราส่วน 3:4 (ทำให้ยาวลง)
-                      child:
-                          _buildInfoCard('why it improtan', Colors.orange[100]),
-                    ),
-                  ),
-                  SizedBox(width: 8), // เพิ่มระยะห่างเล็กน้อยระหว่างกล่อง
-                  Expanded(
-                    child: AspectRatio(
-                      aspectRatio: 3 / 4,
-                      child:
-                          _buildInfoCard('24/7 Medicine', Colors.yellow[100]),
-                    ),
-                  ),
-                  SizedBox(width: 8),
-                  Expanded(
-                    child: AspectRatio(
-                      aspectRatio: 3 / 4,
-                      child: _buildInfoCard(
-                          'Find The Doctors Near You', Colors.blue[100]),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            SizedBox(height: 30),
-
-            // ส่วนของ "3 Easy steps"
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '3 Easy steps \nhelp you start',
-                    style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
-                  ),
-                  SizedBox(height: 10),
-                  IntrinsicHeight(
-                    // ใช้ IntrinsicHeight เพื่อบังคับให้การ์ดทั้งหมดสูงเท่ากัน
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: _buildStepCard(
-                            '1',
-                            'sign in and create your profile',
-                            Colors.orange[100],
-                          ),
-                        ),
-                        SizedBox(width: 8),
-                        Expanded(
-                          child: _buildStepCard(
-                            '2',
-                            'measure your Blood pressure and Record',
-                            Colors.blue[100],
-                          ),
-                        ),
-                        SizedBox(width: 8),
-                        Expanded(
-                          child: _buildStepCard(
-                            '3',
-                            'Get you advice and select your daily plan',
-                            Colors.lightBlue[100],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
             ),
           ],
         ),
       ),
     );
   }
+
+
+    Widget _buildStatCard(String title,String unit, String value) {
+      return Column(
+        children: [
+          Text(
+            value,
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          Text(
+            unit,
+            style: TextStyle(fontSize: 12, color: Colors.grey),
+          ),
+          Text(
+            title,
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+        ],
+      );
+    }
 
   // ฟังก์ชันสร้างการ์ดข้อมูล (ส่วนกล่องที่มีลูกศร)
   Widget _buildInfoCard(String text, Color? color) {
