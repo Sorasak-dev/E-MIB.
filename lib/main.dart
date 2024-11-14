@@ -1,3 +1,7 @@
+import 'package:emib_hospital/pages/recommend_pages.dart';
+import 'package:emib_hospital/user/calender.dart';
+import 'package:emib_hospital/user/faverite.dart';
+import 'package:emib_hospital/user/homepage.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:emib_hospital/user/firstpage/notification_service.dart';
@@ -20,27 +24,169 @@ void main() async {
   final fcmToken = await FirebaseMessaging.instance.getToken();
   print("FCM Token: $fcmToken");
 
-  runApp(const MyApp());
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Flutter Demo',
+      home: MainScreen(),
       theme: ThemeData(
+        colorScheme: ColorScheme.fromSwatch().copyWith(
+          primary: Color(0xFF4C7766),
+        ),
         primarySwatch: Colors.blue,
+        scaffoldBackgroundColor: Colors.white,
       ),
-      home: const AuthCheck(),
-      routes: {
-        '/login': (context) => const LoginPage(),
-        '/Signup': (context) => const SignUpPage(),
-        '/New': (context) => const NewsPages(),
-        '/Settings': (context) => const SettingsPage(),
-      },
+    );
+  }
+}
+
+class MainScreen extends StatefulWidget {
+  @override
+  _MainScreenState createState() => _MainScreenState();
+}
+
+class _MainScreenState extends State<MainScreen> {
+  int _currentBottomIndex = 2; // เริ่มต้นที่ CalendarPage
+  DateTime? _selectedDate;
+  int? _sys;
+  int? _dia;
+  int? _pul;
+  String? _status;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: IndexedStack(
+        index: _currentBottomIndex,
+        children: [
+          MyHomePage(),
+          Faverite(),
+          BloodPressureLogger(
+            onSave: (selectedDate, sys, dia, pul, status) {
+              setState(() {
+                _currentBottomIndex = 3; // เปลี่ยนไปที่หน้า RecommendPages
+                _selectedDate = selectedDate;
+                _sys = sys;
+                _dia = dia;
+                _pul = pul;
+                _status = status;
+              });
+            },
+          ),
+          RecommendPages(
+            selectedDate: _selectedDate,
+            sys: _sys,
+            dia: _dia,
+            pul: _pul,
+            status: _status,
+          ),
+          SettingsPage(),
+        ],
+      ),
+      bottomNavigationBar: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Container(
+            height: 60,
+            child: BottomNavigationBar(
+              currentIndex: _currentBottomIndex,
+              onTap: (index) {
+                setState(() {
+                  _currentBottomIndex = index;
+                });
+              },
+              backgroundColor: Color(0xFFcacafe),
+              type: BottomNavigationBarType.fixed,
+              items: [
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.article),
+                  label: '',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.favorite),
+                  label: '',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.calendar_today),
+                  label: '',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.receipt),
+                  label: '',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.person),
+                  label: '',
+                ),
+              ],
+              selectedItemColor: Colors.black,
+              unselectedItemColor: Colors.black,
+            ),
+          ),
+          _buildFloatingIcon(context, _currentBottomIndex),
+        ],
+      ),
+    );
+  }
+
+  // ฟังก์ชันสำหรับสร้างไอคอนที่นูนขึ้นเมื่อถูกเลือก
+  Widget _buildFloatingIcon(BuildContext context, int index) {
+    double leftPosition;
+    IconData icon;
+
+    switch (index) {
+      case 0:
+        leftPosition = MediaQuery.of(context).size.width * 0.1;
+        icon = Icons.article;
+        break;
+      case 1:
+        leftPosition = MediaQuery.of(context).size.width * 0.3;
+        icon = Icons.favorite;
+        break;
+      case 2:
+        leftPosition = MediaQuery.of(context).size.width * 0.5;
+        icon = Icons.calendar_today;
+        break;
+      case 3:
+        leftPosition = MediaQuery.of(context).size.width * 0.7;
+        icon = Icons.receipt;
+        break;
+      case 4:
+        leftPosition = MediaQuery.of(context).size.width * 0.9;
+        icon = Icons.person;
+        break;
+      default:
+        leftPosition = MediaQuery.of(context).size.width * 0.5;
+        icon = Icons.calendar_today;
+        break;
+    }
+
+    return Positioned(
+      top: -20, // ยกไอคอนขึ้น
+      left: leftPosition - 30,
+      child: Container(
+        padding: EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Color(0xFFc4e9fc), // สีพื้นหลังของไอคอนที่ถูกเลือก
+          borderRadius: BorderRadius.circular(10),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.blue.withOpacity(0.3),
+              spreadRadius: 1,
+              blurRadius: 2,
+              offset: Offset(1, 3), // ตำแหน่งเงา
+            ),
+          ],
+        ),
+        child: Icon(
+          icon,
+          color: Colors.black,
+          size: 28, // ขนาดของไอคอนที่นูนขึ้น
+        ),
+      ),
     );
   }
 }
