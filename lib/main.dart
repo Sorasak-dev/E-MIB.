@@ -1,26 +1,25 @@
-import 'package:emib_hospital/pages/recommend_pages.dart';
-import 'package:emib_hospital/user/calender.dart';
-import 'package:emib_hospital/user/faverite.dart';
-import 'package:emib_hospital/user/homepage.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:emib_hospital/user/firstpage/notification_service.dart';
 import 'package:emib_hospital/user/firstpage/auth_check.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:emib_hospital/user/firstpage/login.dart';
-import 'package:emib_hospital/user/firstpage/signup.dart';
-import 'package:emib_hospital/pages/news_pages.dart';
+import 'package:emib_hospital/user/homepage.dart';
+import 'package:emib_hospital/user/faverite.dart';
+import 'package:emib_hospital/pages/recommend_pages.dart';
+import 'package:emib_hospital/user/calender.dart';
 import 'package:emib_hospital/user/firstpage/setting.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
 
-  // เรียกใช้ firebaseMessagingBackgroundHandler จาก notification_service.dart
+  // Background message handler
   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
+  // Setup notifications
   await setupFlutterNotifications();
 
+  // Get FCM token for debugging
   final fcmToken = await FirebaseMessaging.instance.getToken();
   print("FCM Token: $fcmToken");
 
@@ -60,23 +59,44 @@ class _MainScreenState extends State<MainScreen> {
   int? _pul;
   String? _status;
 
+  final PageController _pageController = PageController(initialPage: 2);
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Foreground message handler
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      print("Foreground Message Received: ${message.notification?.title}");
+      if (message.notification != null) {
+        _showNotification(
+            message); // Show notification using flutter_local_notifications
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(
-        index: _currentBottomIndex,
+      body: PageView(
+        controller: _pageController,
+        onPageChanged: (index) {
+          setState(() {
+            _currentBottomIndex = index;
+          });
+        },
         children: [
           MyHomePage(),
           Faverite(),
           BloodPressureLogger(
             onSave: (selectedDate, sys, dia, pul, status) {
               setState(() {
-                _currentBottomIndex = 3;
                 _selectedDate = selectedDate;
                 _sys = sys;
                 _dia = dia;
                 _pul = pul;
                 _status = status;
+                _pageController.jumpToPage(3);
               });
             },
           ),
@@ -100,6 +120,7 @@ class _MainScreenState extends State<MainScreen> {
               onTap: (index) {
                 setState(() {
                   _currentBottomIndex = index;
+                  _pageController.jumpToPage(index);
                 });
               },
               backgroundColor: const Color(0xFFcacafe),
@@ -107,27 +128,27 @@ class _MainScreenState extends State<MainScreen> {
               items: const [
                 BottomNavigationBarItem(
                   icon: Icon(Icons.article),
-                  label: '',
+                  label: 'Articles',
                 ),
                 BottomNavigationBarItem(
                   icon: Icon(Icons.favorite),
-                  label: '',
+                  label: 'Favorites',
                 ),
                 BottomNavigationBarItem(
                   icon: Icon(Icons.calendar_today),
-                  label: '',
+                  label: 'Calendar',
                 ),
                 BottomNavigationBarItem(
                   icon: Icon(Icons.receipt),
-                  label: '',
+                  label: 'Recommendations',
                 ),
                 BottomNavigationBarItem(
                   icon: Icon(Icons.person),
-                  label: '',
+                  label: 'Settings',
                 ),
               ],
               selectedItemColor: Colors.black,
-              unselectedItemColor: Colors.black,
+              unselectedItemColor: Colors.grey,
             ),
           ),
           _buildFloatingIcon(context, _currentBottomIndex),
@@ -137,39 +158,19 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   Widget _buildFloatingIcon(BuildContext context, int index) {
-    double leftPosition;
-    IconData icon;
-
-    switch (index) {
-      case 0:
-        leftPosition = MediaQuery.of(context).size.width * 0.1;
-        icon = Icons.article;
-        break;
-      case 1:
-        leftPosition = MediaQuery.of(context).size.width * 0.3;
-        icon = Icons.favorite;
-        break;
-      case 2:
-        leftPosition = MediaQuery.of(context).size.width * 0.5;
-        icon = Icons.calendar_today;
-        break;
-      case 3:
-        leftPosition = MediaQuery.of(context).size.width * 0.7;
-        icon = Icons.receipt;
-        break;
-      case 4:
-        leftPosition = MediaQuery.of(context).size.width * 0.9;
-        icon = Icons.person;
-        break;
-      default:
-        leftPosition = MediaQuery.of(context).size.width * 0.5;
-        icon = Icons.calendar_today;
-        break;
-    }
+    final double leftPosition =
+        (MediaQuery.of(context).size.width / 5) * index + 10;
+    final List<IconData> icons = [
+      Icons.article,
+      Icons.favorite,
+      Icons.calendar_today,
+      Icons.receipt,
+      Icons.person,
+    ];
 
     return Positioned(
       top: -20,
-      left: leftPosition - 30,
+      left: leftPosition,
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
@@ -185,11 +186,16 @@ class _MainScreenState extends State<MainScreen> {
           ],
         ),
         child: Icon(
-          icon,
+          icons[index],
           color: Colors.black,
           size: 28,
         ),
       ),
     );
+  }
+
+  void _showNotification(RemoteMessage message) async {
+    await showNotification(
+        message); // Call function from notification_service.dart
   }
 }
