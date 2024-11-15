@@ -1,3 +1,4 @@
+import 'package:emib_hospital/Nevigation/notification_page.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
@@ -15,6 +16,7 @@ class _SettingsPageState extends State<SettingsPage> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _ageController = TextEditingController();
   final TextEditingController _heightController = TextEditingController();
+  final TextEditingController _weightController = TextEditingController();
   String? _gender;
   XFile? _profileImage;
 
@@ -35,7 +37,6 @@ class _SettingsPageState extends State<SettingsPage> {
       final user = FirebaseAuth.instance.currentUser;
 
       if (user != null) {
-        // แสดง Dialog เพื่อยืนยันการลบ
         final bool? confirm = await showDialog(
           context: context,
           builder: (context) {
@@ -58,10 +59,8 @@ class _SettingsPageState extends State<SettingsPage> {
         );
 
         if (confirm == true) {
-          // ลบบัญชีผู้ใช้
           await user.delete();
 
-          // แสดงข้อความสำเร็จ
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Account deleted successfully.'),
@@ -69,7 +68,6 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
           );
 
-          // นำผู้ใช้กลับไปยังหน้า LoginPage
           Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(builder: (context) => const LoginPage()),
@@ -101,100 +99,164 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Settings"),
-        backgroundColor: Colors.lightBlue,
+        backgroundColor: Colors.lightBlue[100],
+        title: const Text(
+          'Settings',
+          style: TextStyle(color: Colors.black),
+        ),
+        centerTitle: true,
+        iconTheme: const IconThemeData(color: Colors.black),
+        actions: [
+          IconButton(
+            icon: const Icon(
+              Icons.notifications,
+              color: Colors.black,
+            ),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => NotificationPage(),
+                ),
+              );
+            },
+          ),
+        ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            CircleAvatar(
-              radius: 50,
-              backgroundImage: _profileImage != null
-                  ? FileImage(File(_profileImage!.path))
-                  : null,
-              child: _profileImage == null
-                  ? const Icon(Icons.person, size: 50)
-                  : null,
-            ),
-            const SizedBox(height: 8),
-            ElevatedButton(
-              onPressed: _pickImage,
-              child: const Text("Edit profile รูป"),
-            ),
-            const SizedBox(height: 20),
-            TextField(
-              controller: _nameController,
-              decoration: const InputDecoration(
-                labelText: 'Name',
-                border: OutlineInputBorder(),
+      body: Container(
+        color: Colors.lightBlue[100], // พื้นหลังสีฟ้าอ่อน
+        padding: const EdgeInsets.all(47.0),
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              CircleAvatar(
+                radius: 50,
+                backgroundImage: _profileImage != null
+                    ? FileImage(File(_profileImage!.path))
+                    : null,
+                child: _profileImage == null
+                    ? const Icon(Icons.person, size: 50)
+                    : null,
               ),
-            ),
-            const SizedBox(height: 10),
-            DropdownButtonFormField<String>(
-              value: _gender,
-              items: const [
-                DropdownMenuItem(value: 'Male', child: Text('Male')),
-                DropdownMenuItem(value: 'Female', child: Text('Female')),
-                DropdownMenuItem(value: 'Other', child: Text('Other')),
-              ],
-              onChanged: (String? newValue) {
-                setState(() {
-                  _gender = newValue;
-                });
-              },
-              decoration: const InputDecoration(
-                labelText: 'Gender',
-                border: OutlineInputBorder(),
+              const SizedBox(height: 8),
+              ElevatedButton(
+                onPressed: _pickImage,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color.fromARGB(255, 244, 246, 250),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                ),
+                child: const Text("Edit profile รูป"),
               ),
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              controller: _ageController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'Age (Yrs)',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              controller: _heightController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'Height (Cm)',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => const LoginPage()),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.purple[200],
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
+              const SizedBox(height: 20),
+              TextField(
+                controller: _nameController,
+                decoration: InputDecoration(
+                  labelText: 'Name',
+                  filled: true,
+                  fillColor: Colors.lightBlue[50], // สีพื้นหลัง TextField
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide.none,
+                  ),
                 ),
               ),
-              child: const Text('Log out'),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _deleteAccount,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.redAccent,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
+              const SizedBox(height: 10),
+              DropdownButtonFormField<String>(
+                value: _gender,
+                items: const [
+                  DropdownMenuItem(value: 'Male', child: Text('Male')),
+                  DropdownMenuItem(value: 'Female', child: Text('Female')),
+                  DropdownMenuItem(value: 'Other', child: Text('Other')),
+                ],
+                onChanged: (String? newValue) {
+                  setState(() {
+                    _gender = newValue;
+                  });
+                },
+                decoration: InputDecoration(
+                  labelText: 'Gender',
+                  filled: true,
+                  fillColor: Colors.lightBlue[50], // สีพื้นหลัง Dropdown
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide.none,
+                  ),
                 ),
               ),
-              child: const Text('Delete Account'),
-            ),
-          ],
+              const SizedBox(height: 10),
+              TextField(
+                controller: _ageController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  labelText: 'Age (Yrs)',
+                  filled: true,
+                  fillColor: Colors.lightBlue[50],
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                controller: _heightController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  labelText: 'Height (Cm)',
+                  filled: true,
+                  fillColor: Colors.lightBlue[50],
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                controller: _weightController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  labelText: 'Weight (Kg)',
+                  filled: true,
+                  fillColor: Colors.lightBlue[50],
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => const LoginPage()),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color.fromARGB(255, 243, 204, 250),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                ),
+                child: const Text('Log out'),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: _deleteAccount,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color.fromARGB(255, 255, 134, 134),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                ),
+                child: const Text('Delete Account'),
+              ),
+            ],
+          ),
         ),
       ),
     );
