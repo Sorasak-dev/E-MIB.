@@ -1,7 +1,9 @@
+import 'package:emib_hospital/user/firstpage/firebase_notifications.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:emib_hospital/user/firstpage/notification_service.dart';
+import 'package:emib_hospital/user/firstpage/firebase_notifications.dart';
 import 'package:emib_hospital/user/firstpage/auth_check.dart';
 import 'package:emib_hospital/user/homepage.dart';
 import 'package:emib_hospital/user/faverite.dart';
@@ -23,10 +25,12 @@ void main() async {
   final fcmToken = await FirebaseMessaging.instance.getToken();
   print("FCM Token: $fcmToken");
 
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -38,6 +42,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         scaffoldBackgroundColor: Colors.white,
       ),
+      debugShowCheckedModeBanner: false,
     );
   }
 }
@@ -69,8 +74,7 @@ class _MainScreenState extends State<MainScreen> {
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       print("Foreground Message Received: ${message.notification?.title}");
       if (message.notification != null) {
-        _showNotification(
-            message); // Show notification using flutter_local_notifications
+        _showNotification(message); // Show notification in-app
       }
     });
   }
@@ -195,7 +199,7 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   void _showNotification(RemoteMessage message) async {
-    await showNotification(
-        message); // Call function from notification_service.dart
+    // เรียกใช้ฟังก์ชันจาก notification_service.dart
+    await showNotification(message);
   }
 }

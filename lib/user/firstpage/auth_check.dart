@@ -17,14 +17,12 @@ class AuthCheck extends StatelessWidget {
         final isLoggedIn = snapshot.data ?? false;
 
         if (isLoggedIn) {
-          // ถ้าผู้ใช้เคยล็อกอินในอุปกรณ์แล้ว ให้ไปหน้า MainScreen
           return FirebaseAuth.instance.currentUser != null
               ? MainScreen(userId: FirebaseAuth.instance.currentUser?.uid)
-              : LoginPage();
+              : const LoginPage();
         }
 
-        // ถ้าผู้ใช้ยังไม่เคยล็อกอินในอุปกรณ์นี้ ไปหน้า LoginPage
-        return LoginPage();
+        return const LoginPage();
       },
     );
   }

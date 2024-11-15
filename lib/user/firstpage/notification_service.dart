@@ -4,22 +4,25 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
     FlutterLocalNotificationsPlugin();
 
-/// Notification Channel for Android
+/// Notification Channel สำหรับ Android
 const AndroidNotificationChannel channel = AndroidNotificationChannel(
-  'high_importance_channel',
-  'High Importance Notifications',
-  description: 'This channel is used for important notifications.',
-  importance: Importance.high,
+  'high_importance_channel', // Channel ID
+  'High Importance Notifications', // ชื่อ Channel
+  description: 'This channel is used for important notifications.', // คำอธิบาย
+  importance: Importance.high, // ความสำคัญของการแจ้งเตือน
 );
 
-/// Setup Notifications
+/// ตั้งค่า Flutter Local Notifications
 Future<void> setupFlutterNotifications() async {
+  // ตั้งค่าเริ่มต้นสำหรับ Android
   const AndroidInitializationSettings initializationSettingsAndroid =
       AndroidInitializationSettings('@mipmap/ic_launcher');
 
+  // รวมการตั้งค่าทุกแพลตฟอร์ม
   const InitializationSettings initializationSettings =
       InitializationSettings(android: initializationSettingsAndroid);
 
+  // กำหนดการทำงานเมื่อผู้ใช้คลิกการแจ้งเตือน
   await flutterLocalNotificationsPlugin.initialize(
     initializationSettings,
     onDidReceiveNotificationResponse: (NotificationResponse response) {
@@ -29,37 +32,50 @@ Future<void> setupFlutterNotifications() async {
     },
   );
 
+  // สร้าง Notification Channel สำหรับ Android 8.0+
   await flutterLocalNotificationsPlugin
       .resolvePlatformSpecificImplementation<
           AndroidFlutterLocalNotificationsPlugin>()
       ?.createNotificationChannel(channel);
 }
 
-/// Background Message Handler
-Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  print("Background Message: ${message.messageId}");
-  await showNotification(message);
-}
-
-/// Show Notification
+/// แสดงการแจ้งเตือนใน Local Notifications
 Future<void> showNotification(RemoteMessage message) async {
+  // ตั้งค่าการแสดงผลสำหรับ Android
   const AndroidNotificationDetails androidNotificationDetails =
       AndroidNotificationDetails(
-    'high_importance_channel',
+    'high_importance_channel', // ต้องตรงกับ Channel ที่สร้าง
     'High Importance Notifications',
     channelDescription: 'This channel is used for important notifications.',
     importance: Importance.max,
     priority: Priority.high,
   );
 
+  // รวมการตั้งค่าทุกแพลตฟอร์ม
   const NotificationDetails notificationDetails =
       NotificationDetails(android: androidNotificationDetails);
 
+  // แสดงการแจ้งเตือน
   await flutterLocalNotificationsPlugin.show(
-    message.hashCode,
-    message.notification?.title ?? 'No title',
-    message.notification?.body ?? 'No body',
+    message.hashCode, // ใช้ hashCode เพื่อให้ ID ของการแจ้งเตือนไม่ซ้ำ
+    message.notification?.title ?? 'No title', // หัวข้อ
+    message.notification?.body ?? 'No body', // เนื้อหา
     notificationDetails,
-    payload: message.data['payload'] ?? '',
+    payload: message.data['payload'] ?? '', // ข้อมูลเพิ่มเติม
   );
+}
+
+class NotificationService {
+  // เก็บรายการการแจ้งเตือน
+  static final List<Map<String, String>> _notifications = [];
+
+  // ดึงรายการแจ้งเตือน
+  static List<Map<String, String>> getNotifications() {
+    return _notifications;
+  }
+
+  // เพิ่มการแจ้งเตือนใหม่
+  static void addNotification(Map<String, String> notification) {
+    _notifications.add(notification);
+  }
 }
