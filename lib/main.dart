@@ -31,10 +31,10 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: MainScreen(),
+      home: AuthCheck(),
       theme: ThemeData(
         colorScheme: ColorScheme.fromSwatch().copyWith(
-          primary: Color(0xFF4C7766),
+          primary: const Color(0xFF4C7766),
         ),
         primarySwatch: Colors.blue,
         scaffoldBackgroundColor: Colors.white,
@@ -44,12 +44,16 @@ class MyApp extends StatelessWidget {
 }
 
 class MainScreen extends StatefulWidget {
+  final String? userId;
+
+  const MainScreen({Key? key, this.userId}) : super(key: key);
+
   @override
   _MainScreenState createState() => _MainScreenState();
 }
 
 class _MainScreenState extends State<MainScreen> {
-  int _currentBottomIndex = 2; // เริ่มต้นที่ CalendarPage
+  int _currentBottomIndex = 2;
   DateTime? _selectedDate;
   int? _sys;
   int? _dia;
@@ -67,7 +71,7 @@ class _MainScreenState extends State<MainScreen> {
           BloodPressureLogger(
             onSave: (selectedDate, sys, dia, pul, status) {
               setState(() {
-                _currentBottomIndex = 3; // เปลี่ยนไปที่หน้า RecommendPages
+                _currentBottomIndex = 3;
                 _selectedDate = selectedDate;
                 _sys = sys;
                 _dia = dia;
@@ -98,9 +102,9 @@ class _MainScreenState extends State<MainScreen> {
                   _currentBottomIndex = index;
                 });
               },
-              backgroundColor: Color(0xFFcacafe),
+              backgroundColor: const Color(0xFFcacafe),
               type: BottomNavigationBarType.fixed,
-              items: [
+              items: const [
                 BottomNavigationBarItem(
                   icon: Icon(Icons.article),
                   label: '',
@@ -132,7 +136,6 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
-  // ฟังก์ชันสำหรับสร้างไอคอนที่นูนขึ้นเมื่อถูกเลือก
   Widget _buildFloatingIcon(BuildContext context, int index) {
     double leftPosition;
     IconData icon;
@@ -165,26 +168,26 @@ class _MainScreenState extends State<MainScreen> {
     }
 
     return Positioned(
-      top: -20, // ยกไอคอนขึ้น
+      top: -20,
       left: leftPosition - 30,
       child: Container(
-        padding: EdgeInsets.all(12),
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Color(0xFFc4e9fc), // สีพื้นหลังของไอคอนที่ถูกเลือก
+          color: const Color(0xFFc4e9fc),
           borderRadius: BorderRadius.circular(10),
           boxShadow: [
             BoxShadow(
               color: Colors.blue.withOpacity(0.3),
               spreadRadius: 1,
               blurRadius: 2,
-              offset: Offset(1, 3), // ตำแหน่งเงา
+              offset: const Offset(1, 3),
             ),
           ],
         ),
         child: Icon(
           icon,
           color: Colors.black,
-          size: 28, // ขนาดของไอคอนที่นูนขึ้น
+          size: 28,
         ),
       ),
     );
