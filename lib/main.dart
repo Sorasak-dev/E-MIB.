@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:emib_hospital/user/firstpage/notification_service.dart';
-import 'package:emib_hospital/user/firstpage/firebase_notifications.dart';
 import 'package:emib_hospital/user/firstpage/auth_check.dart';
 import 'package:emib_hospital/user/homepage.dart';
 import 'package:emib_hospital/user/faverite.dart';
@@ -58,13 +57,13 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _currentBottomIndex = 2;
+  final PageController _pageController = PageController(initialPage: 2);
+
   DateTime? _selectedDate;
   int? _sys;
   int? _dia;
   int? _pul;
   String? _status;
-
-  final PageController _pageController = PageController(initialPage: 2);
 
   @override
   void initState() {
@@ -73,9 +72,12 @@ class _MainScreenState extends State<MainScreen> {
     // Foreground message handler
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       print("Foreground Message Received: ${message.notification?.title}");
-      if (message.notification != null) {
-        _showNotification(message); // Show notification in-app
-      }
+
+      // Add notification to NotificationService
+      NotificationService.addNotification(message);
+
+      // Show notification locally
+      _showNotification(message);
     });
   }
 
@@ -114,51 +116,49 @@ class _MainScreenState extends State<MainScreen> {
           SettingsPage(),
         ],
       ),
-      bottomNavigationBar: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Container(
-            height: 60,
-            child: BottomNavigationBar(
-              currentIndex: _currentBottomIndex,
-              onTap: (index) {
-                setState(() {
-                  _currentBottomIndex = index;
-                  _pageController.jumpToPage(index);
-                });
-              },
-              backgroundColor: const Color(0xFFcacafe),
-              type: BottomNavigationBarType.fixed,
-              items: const [
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.article),
-                  label: 'Articles',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.favorite),
-                  label: 'Favorites',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.calendar_today),
-                  label: 'Calendar',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.receipt),
-                  label: 'Recommendations',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.person),
-                  label: 'Settings',
-                ),
-              ],
-              selectedItemColor: Colors.black,
-              unselectedItemColor: Colors.grey,
-            ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _currentBottomIndex,
+        onTap: (index) {
+          _onBottomNavigationTapped(index); // แยกการจัดการในฟังก์ชัน
+        },
+        backgroundColor: const Color(0xFFcacafe),
+        type: BottomNavigationBarType.fixed,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.article),
+            label: 'Articles',
           ),
-          _buildFloatingIcon(context, _currentBottomIndex),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.favorite),
+            label: 'Favorites',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.calendar_today),
+            label: 'Calendar',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.receipt),
+            label: 'Recommendations',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'Settings',
+          ),
         ],
+        selectedItemColor: Colors.black,
+        unselectedItemColor: Colors.grey,
       ),
     );
+  }
+
+  void _onBottomNavigationTapped(int index) {
+    // อัปเดต UI ด้วย setState
+    setState(() {
+      _currentBottomIndex = index;
+    });
+
+    // ใช้ Future.microtask เพื่อให้ jumpToPage ทำงานแยก
+    Future.microtask(() => _pageController.jumpToPage(index));
   }
 
   Widget _buildFloatingIcon(BuildContext context, int index) {
@@ -199,7 +199,10 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   void _showNotification(RemoteMessage message) async {
-    // เรียกใช้ฟังก์ชันจาก notification_service.dart
-    await showNotification(message);
+    try {
+      await showNotification(message);
+    } catch (e) {
+      print("Error showing notification: $e");
+    }
   }
 }
