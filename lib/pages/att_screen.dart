@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:emib_hospital/pages/att_detail_screen.dart';
 import 'package:http/http.dart' as http;
-import 'package:emib_hospital/pages/favorite_page.dart';
+import 'package:emib_hospital/user/favorite_page.dart';
 
 class AttractionsScreen extends StatefulWidget {
   const AttractionsScreen({super.key});
@@ -25,7 +25,8 @@ class _AttractionsScreenState extends State<AttractionsScreen> {
   }
 
   Future<void> _fetchAttractions() async {
-    final response = await http.get(Uri.parse('https://my.api.mockaroo.com/food_name.json?key=4ce583c0'));
+    final response = await http.get(
+        Uri.parse('https://my.api.mockaroo.com/food_name.json?key=4ce583c0'));
     setState(() {
       _attractions = json.decode(response.body);
     });
@@ -54,7 +55,8 @@ class _AttractionsScreenState extends State<AttractionsScreen> {
     setState(() {
       if (_favoritedIds.contains(attraction['id'])) {
         _favoritedIds.remove(attraction['id']);
-        _favoriteAttractions.removeWhere((item) => item['id'] == attraction['id']);
+        _favoriteAttractions
+            .removeWhere((item) => item['id'] == attraction['id']);
       } else {
         _favoritedIds.add(attraction['id']);
         _favoriteAttractions.add(attraction);
@@ -65,7 +67,8 @@ class _AttractionsScreenState extends State<AttractionsScreen> {
   void _deleteFromFavorites(dynamic attraction) {
     setState(() {
       _favoritedIds.remove(attraction['id']);
-      _favoriteAttractions.removeWhere((item) => item['id'] == attraction['id']);
+      _favoriteAttractions
+          .removeWhere((item) => item['id'] == attraction['id']);
     });
   }
 
@@ -123,7 +126,8 @@ class _AttractionsScreenState extends State<AttractionsScreen> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => AttractionDetailScreen(id: attraction['id']),
+                  builder: (context) =>
+                      AttractionDetailScreen(id: attraction['id']),
                 ),
               );
             },

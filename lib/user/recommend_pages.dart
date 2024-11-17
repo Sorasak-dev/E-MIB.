@@ -66,7 +66,7 @@ class _RecommendPagesState extends State<RecommendPages> {
                         'Today',
                         style: TextStyle(
                           color: Colors.black,
-                          fontSize: 24,
+                          fontSize: 35,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -74,19 +74,27 @@ class _RecommendPagesState extends State<RecommendPages> {
                       Text(
                         widget.selectedDate != null
                             ? '${widget.selectedDate!.day} ${_getMonthName(widget.selectedDate!.month)}'
-                            : 'No data recorded ',
+                            : 'No data recorded',
                         style: TextStyle(
                           color: Colors.black,
                           fontSize: 16,
                         ),
                       ),
                       SizedBox(height: 8),
-                      Text(
-                        widget.status ?? '',
-                        style: TextStyle(
-                          color: getStatusColor(widget.status),
-                          fontSize: 40,
-                          fontWeight: FontWeight.bold,
+                      AnimatedContainer(
+                        duration: Duration(milliseconds: 300),
+                        decoration: BoxDecoration(
+                          color: getStatusColor(widget.status).withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        padding: EdgeInsets.all(8.0),
+                        child: Text(
+                          widget.status ?? 'No Status',
+                          style: TextStyle(
+                            color: getStatusColor(widget.status),
+                            fontSize: 40,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ],
@@ -99,7 +107,7 @@ class _RecommendPagesState extends State<RecommendPages> {
                         width: double.infinity,
                         padding: EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: Color(0xFFBBE9FF),
+                          color: Colors.orange[100],
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Column(
@@ -111,7 +119,10 @@ class _RecommendPagesState extends State<RecommendPages> {
                           ],
                         ),
                       )
-                    : SizedBox.shrink(),
+                    : Text(
+                        'No blood pressure data available',
+                        style: TextStyle(color: Colors.grey),
+                      ),
 
                 SizedBox(height: 16),
 
@@ -120,7 +131,7 @@ class _RecommendPagesState extends State<RecommendPages> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: const [
                     Text(
-                      'Warning',
+                      'Recommendations',
                       style: TextStyle(
                           color: Color.fromARGB(255, 86, 80, 255),
                           fontSize: 20,
@@ -131,28 +142,108 @@ class _RecommendPagesState extends State<RecommendPages> {
 
                 SizedBox(height: 16),
 
-                // Warning Containers
-                _buildWarningContainer(
-                  FontAwesomeIcons.pepperHot,
-                  Color.fromARGB(255, 255, 176, 87),
-                  'ระมัดระวังการรับประทานอาหารจำพวกพริก',
-                  'ข้อมูลเพิ่มเติม: สารในพริกบางชนิดที่อาจทำให้เกิดอาการได้',
-                ),
-
-                SizedBox(height: 16),
-
-                _buildWarningContainer(
-                  FontAwesomeIcons.candyCane,
-                  Colors.pink[300],
-                  'Low sweet',
-                  'ข้อมูลเพิ่มเติม: ทานของหวานมากเกินทำให้เกิดผลเสียมากขึ้น',
-                ),
+                // Dynamic Warnings Based on Status
+                ..._buildWarnings(widget.status),
               ],
             ),
           ),
         ),
       ),
     );
+  }
+
+  List<Widget> _buildWarnings(String? status) {
+    // Define recommendations based on status
+    List<Map<String, dynamic>> recommendations = [];
+
+    switch (status) {
+      case 'Low':
+        recommendations = [
+          {
+            'icon': FontAwesomeIcons.utensils,
+            'color': Colors.orange,
+            'title': 'เพิ่มโซเดียมในอาหาร',
+            'subtitle': 'ทานอาหารเค็มเล็กน้อยเพื่อช่วยปรับสมดุลความดันโลหิต',
+          },
+          {
+            'icon': FontAwesomeIcons.water,
+            'color': Colors.blue,
+            'title': 'ดื่มน้ำให้เพียงพอ',
+            'subtitle': 'การดื่มน้ำช่วยเพิ่มการไหลเวียนโลหิต',
+          },
+          {
+            'icon': FontAwesomeIcons.bed,
+            'color': Colors.purple,
+            'title': 'พักผ่อนให้เพียงพอ',
+            'subtitle': 'นอนหลับพักผ่อนให้ร่างกายฟื้นฟูสมดุล',
+          },
+        ];
+        break;
+      case 'High':
+        recommendations = [
+          {
+            'icon': FontAwesomeIcons.walking,
+            'color': Colors.red,
+            'title': 'ลดความเครียด',
+            'subtitle': 'ฝึกสมาธิหรือทำกิจกรรมที่ช่วยผ่อนคลายจิตใจ',
+          },
+          {
+            'icon': FontAwesomeIcons.appleAlt,
+            'color': Colors.green,
+            'title': 'รับประทานผลไม้ที่มีโพแทสเซียม',
+            'subtitle': 'กล้วย ส้ม และผักใบเขียวช่วยลดความดันโลหิต',
+          },
+          {
+            'icon': FontAwesomeIcons.prescriptionBottleAlt,
+            'color': Colors.blueGrey,
+            'title': 'ปฏิบัติตามคำแนะนำแพทย์',
+            'subtitle': 'รับประทานยาตามแพทย์สั่งอย่างเคร่งครัด',
+          },
+        ];
+        break;
+      case 'Normal':
+        recommendations = [
+          {
+            'icon': FontAwesomeIcons.smile,
+            'color': Colors.green,
+            'title': 'รักษาอาหารที่มีประโยชน์',
+            'subtitle': 'ทานอาหารครบ 5 หมู่เพื่อสุขภาพที่ดี',
+          },
+          {
+            'icon': FontAwesomeIcons.dumbbell,
+            'color': Colors.blueGrey,
+            'title': 'ออกกำลังกายสม่ำเสมอ',
+            'subtitle': 'การออกกำลังกายช่วยรักษาระดับความดันให้คงที่',
+          },
+          {
+            'icon': FontAwesomeIcons.heart,
+            'color': Colors.pink,
+            'title': 'ตรวจสุขภาพเป็นประจำ',
+            'subtitle': 'ตรวจความดันโลหิตเพื่อเฝ้าระวังความเสี่ยง',
+          },
+        ];
+        break;
+      default:
+        recommendations = [
+          {
+            'icon': FontAwesomeIcons.questionCircle,
+            'color': Colors.grey,
+            'title': 'ไม่มีคำแนะนำ',
+            'subtitle': 'กรุณาบันทึกข้อมูลเพื่อรับคำแนะนำที่เหมาะสม',
+          },
+        ];
+        break;
+    }
+
+    // Map recommendations to warning containers
+    return recommendations
+        .map((rec) => _buildWarningContainer(
+              rec['icon'],
+              rec['color'],
+              rec['title'],
+              rec['subtitle'],
+            ))
+        .toList();
   }
 
   Widget _buildDataRow(String label, int? value, String unit) {
@@ -205,6 +296,7 @@ class _RecommendPagesState extends State<RecommendPages> {
     return Container(
       width: double.infinity,
       height: 150,
+      margin: EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16.0),
@@ -228,6 +320,7 @@ class _RecommendPagesState extends State<RecommendPages> {
         ),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
               title,

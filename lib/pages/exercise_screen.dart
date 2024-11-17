@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:emib_hospital/pages/exercise_detail_screen.dart';
 import 'package:http/http.dart' as http;
-import 'package:emib_hospital/pages/favorite_page.dart';
+import 'package:emib_hospital/user/favorite_page.dart';
 
 class ExerciseScreen extends StatefulWidget {
   const ExerciseScreen({super.key});
@@ -25,7 +25,8 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
   }
 
   Future<void> _fetchExercise() async {
-    final response = await http.get(Uri.parse('https://my.api.mockaroo.com/exercise.json?key=4ce583c0'));
+    final response = await http.get(
+        Uri.parse('https://my.api.mockaroo.com/exercise.json?key=4ce583c0'));
     setState(() {
       _exercises = json.decode(response.body);
     });
@@ -123,7 +124,8 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => ExerciseDetailScreen(id: exercise['id']),
+                  builder: (context) =>
+                      ExerciseDetailScreen(id: exercise['id']),
                 ),
               );
             },

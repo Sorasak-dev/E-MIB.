@@ -1,11 +1,10 @@
-import 'package:emib_hospital/pages/recommend_pages.dart';
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 class BloodPressureLogger extends StatefulWidget {
   final Function(DateTime, int, int, int, String) onSave;
 
-  BloodPressureLogger({required this.onSave});
+  const BloodPressureLogger({required this.onSave, Key? key}) : super(key: key);
 
   @override
   _BloodPressureLoggerState createState() => _BloodPressureLoggerState();
@@ -13,10 +12,11 @@ class BloodPressureLogger extends StatefulWidget {
 
 class _BloodPressureLoggerState extends State<BloodPressureLogger> {
   DateTime _selectedDay = DateTime.now();
-  TextEditingController _sysController = TextEditingController();
-  TextEditingController _diaController = TextEditingController();
-  TextEditingController _pulController = TextEditingController();
+  final TextEditingController _sysController = TextEditingController();
+  final TextEditingController _diaController = TextEditingController();
+  final TextEditingController _pulController = TextEditingController();
 
+  // ดึงสถานะความดันโลหิต
   String getStatus(int sys, int dia) {
     if (sys < 90 || dia < 60) {
       return 'Low';
@@ -27,18 +27,52 @@ class _BloodPressureLoggerState extends State<BloodPressureLogger> {
     }
   }
 
+  // เมธอดบันทึกข้อมูล
   void _saveRecord() {
-    int sys = int.parse(_sysController.text);
-    int dia = int.parse(_diaController.text);
-    int pul = int.parse(_pulController.text);
+    if (validateInput()) {
+      int sys = int.parse(_sysController.text);
+      int dia = int.parse(_diaController.text);
+      int pul = int.parse(_pulController.text);
 
-    String status = getStatus(sys, dia);
+      String status = getStatus(sys, dia);
 
-    widget.onSave(_selectedDay, sys, dia, pul, status);
+      // เรียกใช้ฟังก์ชัน onSave เพื่อส่งข้อมูลกลับไป
+      widget.onSave(_selectedDay, sys, dia, pul, status);
 
-    _clearFields();
+      // แสดงข้อความแจ้งเตือน
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Record Saved!')),
+      );
+
+      _clearFields();
+    }
   }
 
+  // ตรวจสอบข้อมูลการป้อน
+  bool validateInput() {
+    if (_sysController.text.isEmpty ||
+        _diaController.text.isEmpty ||
+        _pulController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Please fill all fields')),
+      );
+      return false;
+    }
+
+    try {
+      int.parse(_sysController.text);
+      int.parse(_diaController.text);
+      int.parse(_pulController.text);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Please enter valid numbers')),
+      );
+      return false;
+    }
+    return true;
+  }
+
+  // ล้างข้อมูลในช่องกรอก
   void _clearFields() {
     _sysController.clear();
     _diaController.clear();
@@ -51,7 +85,7 @@ class _BloodPressureLoggerState extends State<BloodPressureLogger> {
       body: SafeArea(
         child: Column(
           children: [
-            // แถบด้านบนที่มีไอคอนเมนูและการแจ้งเตือน
+            // แถบด้านบน
             Padding(
               padding:
                   const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -72,7 +106,7 @@ class _BloodPressureLoggerState extends State<BloodPressureLogger> {
 
             // ปฏิทิน
             Container(
-              padding: EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(16.0),
               decoration: BoxDecoration(
                 color: Colors.white,
                 boxShadow: [
@@ -88,9 +122,7 @@ class _BloodPressureLoggerState extends State<BloodPressureLogger> {
                 firstDay: DateTime.utc(2020, 1, 1),
                 lastDay: DateTime.utc(2030, 12, 31),
                 focusedDay: _selectedDay,
-                selectedDayPredicate: (day) {
-                  return isSameDay(_selectedDay, day);
-                },
+                selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
                 onDaySelected: (selectedDay, focusedDay) {
                   setState(() {
                     _selectedDay = selectedDay;
@@ -110,8 +142,10 @@ class _BloodPressureLoggerState extends State<BloodPressureLogger> {
                 headerStyle: HeaderStyle(
                   formatButtonVisible: false,
                   titleCentered: true,
-                  titleTextStyle:
-                      TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  titleTextStyle: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
                   leftChevronIcon:
                       Icon(Icons.chevron_left, color: Colors.blueAccent),
                   rightChevronIcon:
@@ -119,20 +153,22 @@ class _BloodPressureLoggerState extends State<BloodPressureLogger> {
                 ),
                 daysOfWeekStyle: DaysOfWeekStyle(
                   weekendStyle: TextStyle(
-                      color: Colors.redAccent, fontWeight: FontWeight.bold),
+                    color: Colors.redAccent,
+                    fontWeight: FontWeight.bold,
+                  ),
                   weekdayStyle: TextStyle(fontWeight: FontWeight.bold),
                 ),
               ),
             ),
             SizedBox(height: 20),
 
-            // แถบป้อนข้อมูลสีส้ม
+            // แถบป้อนข้อมูล
             Expanded(
               child: SingleChildScrollView(
                 child: Container(
                   width: double.infinity,
-                  margin: EdgeInsets.all(16.0),
-                  padding: EdgeInsets.all(16.0),
+                  margin: const EdgeInsets.all(16.0),
+                  padding: const EdgeInsets.all(16.0),
                   decoration: BoxDecoration(
                     color: Colors.orange[100],
                     borderRadius: BorderRadius.circular(16.0),
@@ -156,7 +192,9 @@ class _BloodPressureLoggerState extends State<BloodPressureLogger> {
                           Text(
                             '${_selectedDay.day} ${_getMonthName(_selectedDay.month)} ${_selectedDay.year}',
                             style: TextStyle(
-                                fontSize: 24, fontWeight: FontWeight.bold),
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ],
                       ),
@@ -175,18 +213,18 @@ class _BloodPressureLoggerState extends State<BloodPressureLogger> {
                       SizedBox(height: 20),
                       Center(
                         child: ElevatedButton.icon(
-                          onPressed: () {
-                            _saveRecord();
-                          },
+                          onPressed: _saveRecord,
                           icon: Icon(Icons.save, color: Colors.white),
-                          label: Text('Save',
-                              style: TextStyle(color: Colors.white)),
+                          label: Text(
+                            'Save',
+                            style: TextStyle(color: Colors.white),
+                          ),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.blueAccent,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(20),
                             ),
-                            padding: EdgeInsets.symmetric(
+                            padding: const EdgeInsets.symmetric(
                                 horizontal: 30, vertical: 10),
                           ),
                         ),
@@ -202,6 +240,7 @@ class _BloodPressureLoggerState extends State<BloodPressureLogger> {
     );
   }
 
+  // ช่องป้อนข้อมูล
   Widget _buildTextField(
       String label, TextEditingController controller, IconData icon) {
     return Column(
@@ -229,6 +268,7 @@ class _BloodPressureLoggerState extends State<BloodPressureLogger> {
     );
   }
 
+  // แปลงเดือนเป็นชื่อ
   String _getMonthName(int month) {
     const monthNames = [
       'January',
@@ -245,6 +285,5 @@ class _BloodPressureLoggerState extends State<BloodPressureLogger> {
       'December'
     ];
     return monthNames[month - 1];
-    ////..
   }
 }

@@ -1,3 +1,5 @@
+import 'package:emib_hospital/user/favorite_page.dart';
+import 'package:emib_hospital/user/homepage.dart';
 import 'package:emib_hospital/user/firstpage/firebase_notifications.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -5,8 +7,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:emib_hospital/user/firstpage/notification_service.dart';
 import 'package:emib_hospital/user/firstpage/auth_check.dart';
 import 'package:emib_hospital/user/homepage.dart';
-import 'package:emib_hospital/user/faverite.dart';
-import 'package:emib_hospital/pages/recommend_pages.dart';
+import 'package:emib_hospital/user/recommend_pages.dart';
 import 'package:emib_hospital/user/calender.dart';
 import 'package:emib_hospital/user/firstpage/setting.dart';
 
@@ -66,22 +67,6 @@ class _MainScreenState extends State<MainScreen> {
   String? _status;
 
   @override
-  void initState() {
-    super.initState();
-
-    // Foreground message handler
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      print("Foreground Message Received: ${message.notification?.title}");
-
-      // Add notification to NotificationService
-      NotificationService.addNotification(message);
-
-      // Show notification locally
-      _showNotification(message);
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: PageView(
@@ -93,7 +78,17 @@ class _MainScreenState extends State<MainScreen> {
         },
         children: [
           MyHomePage(),
-          Faverite(),
+          FavoritePage(
+            favorites: [], // ใส่รายการ Favorite ที่ต้องการ (สามารถใช้ List ว่างได้)
+            onFavoriteToggle: (item) {
+              // ฟังก์ชันสำหรับเปิด/ปิดสถานะ Favorite
+              print('Toggled favorite for $item');
+            },
+            onDelete: (item) {
+              // ฟังก์ชันสำหรับลบรายการ
+              print('Deleted favorite item: $item');
+            },
+          ),
           BloodPressureLogger(
             onSave: (selectedDate, sys, dia, pul, status) {
               setState(() {
@@ -116,93 +111,121 @@ class _MainScreenState extends State<MainScreen> {
           SettingsPage(),
         ],
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentBottomIndex,
-        onTap: (index) {
-          _onBottomNavigationTapped(index); // แยกการจัดการในฟังก์ชัน
-        },
-        backgroundColor: const Color(0xFFcacafe),
-        type: BottomNavigationBarType.fixed,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.article),
-            label: 'Articles',
+      bottomNavigationBar: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Container(
+            height: 60,
+            child: BottomNavigationBar(
+              currentIndex: _currentBottomIndex,
+              onTap: _onBottomNavigationTapped, // ใช้ฟังก์ชันนี้
+              backgroundColor: Color(0xFFcacafe),
+              type: BottomNavigationBarType.fixed,
+              items: const [
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.article),
+                  label: 'Articles',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.favorite),
+                  label: 'Favorites',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.calendar_today),
+                  label: 'Calendar',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.receipt),
+                  label: 'Recommendations',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.person),
+                  label: 'Settings',
+                ),
+              ],
+              selectedItemColor: Colors.black,
+              unselectedItemColor: Colors.grey,
+            ),
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.favorite),
-            label: 'Favorites',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.calendar_today),
-            label: 'Calendar',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.receipt),
-            label: 'Recommendations',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Settings',
-          ),
+          _buildFloatingIcon(context, _currentBottomIndex),
         ],
-        selectedItemColor: Colors.black,
-        unselectedItemColor: Colors.grey,
       ),
     );
   }
 
+  // ฟังก์ชันจัดการการเปลี่ยนหน้า
   void _onBottomNavigationTapped(int index) {
-    // อัปเดต UI ด้วย setState
     setState(() {
       _currentBottomIndex = index;
     });
 
-    // ใช้ Future.microtask เพื่อให้ jumpToPage ทำงานแยก
+    // ใช้ Future.microtask เพื่อเลี่ยงข้อผิดพลาด jumpToPage
     Future.microtask(() => _pageController.jumpToPage(index));
   }
 
+  // ฟังก์ชันสำหรับสร้างไอคอนที่นูนขึ้นเมื่อถูกเลือก
   Widget _buildFloatingIcon(BuildContext context, int index) {
-    final double leftPosition =
-        (MediaQuery.of(context).size.width / 5) * index + 10;
-    final List<IconData> icons = [
-      Icons.article,
-      Icons.favorite,
-      Icons.calendar_today,
-      Icons.receipt,
-      Icons.person,
-    ];
+    double leftPosition;
+    IconData icon;
+
+    switch (index) {
+      case 0:
+        leftPosition = MediaQuery.of(context).size.width * 0.1;
+        icon = Icons.article;
+        break;
+      case 1:
+        leftPosition = MediaQuery.of(context).size.width * 0.3;
+        icon = Icons.favorite;
+        break;
+      case 2:
+        leftPosition = MediaQuery.of(context).size.width * 0.5;
+        icon = Icons.calendar_today;
+        break;
+      case 3:
+        leftPosition = MediaQuery.of(context).size.width * 0.7;
+        icon = Icons.receipt;
+        break;
+      case 4:
+        leftPosition = MediaQuery.of(context).size.width * 0.9;
+        icon = Icons.person;
+        break;
+      default:
+        leftPosition = MediaQuery.of(context).size.width * 0.5;
+        icon = Icons.calendar_today;
+        break;
+    }
 
     return Positioned(
-      top: -20,
-      left: leftPosition,
+      top: -20, // ยกไอคอนขึ้น
+      left: leftPosition - 30,
       child: Container(
-        padding: const EdgeInsets.all(12),
+        padding: EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: const Color(0xFFc4e9fc),
+          color: Color(0xFFc4e9fc), // สีพื้นหลังของไอคอนที่ถูกเลือก
           borderRadius: BorderRadius.circular(10),
           boxShadow: [
             BoxShadow(
               color: Colors.blue.withOpacity(0.3),
               spreadRadius: 1,
               blurRadius: 2,
-              offset: const Offset(1, 3),
+              offset: Offset(1, 3), // ตำแหน่งเงา
             ),
           ],
         ),
         child: Icon(
-          icons[index],
+          icon,
           color: Colors.black,
-          size: 28,
+          size: 28, // ขนาดของไอคอนที่นูนขึ้น
         ),
       ),
     );
   }
+}
 
-  void _showNotification(RemoteMessage message) async {
-    try {
-      await showNotification(message);
-    } catch (e) {
-      print("Error showing notification: $e");
-    }
+void _showNotification(RemoteMessage message) async {
+  try {
+    await showNotification(message);
+  } catch (e) {
+    print("Error showing notification: $e");
   }
 }
