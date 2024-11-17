@@ -22,6 +22,36 @@ class RecommendPages extends StatefulWidget {
 }
 
 class _RecommendPagesState extends State<RecommendPages> {
+  // ตัวแปรใน State
+  DateTime? _selectedDate;
+  int? _sys;
+  int? _dia;
+  int? _pul;
+  String? _status;
+
+  @override
+  void initState() {
+    super.initState();
+    // ตั้งค่าข้อมูลเริ่มต้นจาก Widget
+    _selectedDate = widget.selectedDate;
+    _sys = widget.sys;
+    _dia = widget.dia;
+    _pul = widget.pul;
+    _status = widget.status;
+  }
+
+  // ฟังก์ชันลบข้อมูล
+  void _clearData() {
+    setState(() {
+      _selectedDate = null;
+      _sys = null;
+      _dia = null;
+      _pul = null;
+      _status = null;
+    });
+  }
+
+  // กำหนดสีของสถานะ
   Color getStatusColor(String? status) {
     switch (status) {
       case 'Low':
@@ -45,7 +75,7 @@ class _RecommendPagesState extends State<RecommendPages> {
             padding: const EdgeInsets.all(25.0),
             child: Column(
               children: [
-                // Notification Icon
+                // ไอคอนแจ้งเตือน
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
@@ -56,7 +86,7 @@ class _RecommendPagesState extends State<RecommendPages> {
                   ],
                 ),
 
-                // Date and Status Display
+                // วันที่และสถานะ
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 16.0),
                   child: Column(
@@ -72,8 +102,8 @@ class _RecommendPagesState extends State<RecommendPages> {
                       ),
                       SizedBox(height: 4),
                       Text(
-                        widget.selectedDate != null
-                            ? '${widget.selectedDate!.day} ${_getMonthName(widget.selectedDate!.month)}'
+                        _selectedDate != null
+                            ? '${_selectedDate!.day} ${_getMonthName(_selectedDate!.month)}'
                             : 'No data recorded',
                         style: TextStyle(
                           color: Colors.black,
@@ -84,14 +114,14 @@ class _RecommendPagesState extends State<RecommendPages> {
                       AnimatedContainer(
                         duration: Duration(milliseconds: 300),
                         decoration: BoxDecoration(
-                          color: getStatusColor(widget.status).withOpacity(0.2),
+                          color: getStatusColor(_status).withOpacity(0.2),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         padding: EdgeInsets.all(8.0),
                         child: Text(
-                          widget.status ?? 'No Status',
+                          _status ?? 'No Status',
                           style: TextStyle(
-                            color: getStatusColor(widget.status),
+                            color: getStatusColor(_status),
                             fontSize: 40,
                             fontWeight: FontWeight.bold,
                           ),
@@ -101,8 +131,8 @@ class _RecommendPagesState extends State<RecommendPages> {
                   ),
                 ),
 
-                // Display Blood Pressure Data
-                widget.sys != null && widget.dia != null && widget.pul != null
+                // ข้อมูลความดันโลหิต
+                _sys != null && _dia != null && _pul != null
                     ? Container(
                         width: double.infinity,
                         padding: EdgeInsets.all(16),
@@ -113,9 +143,9 @@ class _RecommendPagesState extends State<RecommendPages> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _buildDataRow('SYS', widget.sys, 'mmHg'),
-                            _buildDataRow('DIA', widget.dia, 'mmHg'),
-                            _buildDataRow('PUL', widget.pul, 'min'),
+                            _buildDataRow('SYS', _sys, 'mmHg'),
+                            _buildDataRow('DIA', _dia, 'mmHg'),
+                            _buildDataRow('PUL', _pul, 'min'),
                           ],
                         ),
                       )
@@ -126,7 +156,22 @@ class _RecommendPagesState extends State<RecommendPages> {
 
                 SizedBox(height: 16),
 
-                // Warning Section
+                // ปุ่มลบข้อมูล
+                ElevatedButton(
+                  onPressed: _clearData,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red, // สีปุ่ม
+                    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  ),
+                  child: Text(
+                    'ClearData',
+                    style: TextStyle(color: Colors.white, fontSize: 16),
+                  ),
+                ),
+
+                SizedBox(height: 16),
+
+                // คำแนะนำ
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: const [
@@ -142,8 +187,8 @@ class _RecommendPagesState extends State<RecommendPages> {
 
                 SizedBox(height: 16),
 
-                // Dynamic Warnings Based on Status
-                ..._buildWarnings(widget.status),
+                // คำเตือนตามสถานะ
+                ..._buildWarnings(_status),
               ],
             ),
           ),
@@ -152,8 +197,60 @@ class _RecommendPagesState extends State<RecommendPages> {
     );
   }
 
+  // ฟังก์ชันสร้างแถวข้อมูล (SYS, DIA, PUL)
+  Widget _buildDataRow(String label, int? value, String unit) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          Container(
+            width: 60,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              label,
+              style: TextStyle(
+                color: Colors.black,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          Container(
+            width: 100,
+            height: 40,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.black, width: 1),
+            ),
+            child: Text(
+              value?.toString() ?? '',
+              style: TextStyle(
+                color: Colors.black,
+                fontSize: 18,
+              ),
+            ),
+          ),
+          Container(
+            width: 60,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              unit,
+              style: TextStyle(
+                color: Colors.black,
+                fontSize: 18,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ฟังก์ชันสร้างคำเตือน
   List<Widget> _buildWarnings(String? status) {
-    // Define recommendations based on status
     List<Map<String, dynamic>> recommendations = [];
 
     switch (status) {
@@ -235,7 +332,6 @@ class _RecommendPagesState extends State<RecommendPages> {
         break;
     }
 
-    // Map recommendations to warning containers
     return recommendations
         .map((rec) => _buildWarningContainer(
               rec['icon'],
@@ -246,51 +342,7 @@ class _RecommendPagesState extends State<RecommendPages> {
         .toList();
   }
 
-  Widget _buildDataRow(String label, int? value, String unit) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-              color: Colors.black,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          SizedBox(width: 16),
-          Container(
-            width: 120, // Set equal width for all fields
-            height: 40,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.black, width: 1),
-            ),
-            child: Text(
-              value?.toString() ?? '',
-              style: TextStyle(
-                color: Colors.black,
-                fontSize: 18,
-              ),
-            ),
-          ),
-          SizedBox(width: 16),
-          Text(
-            unit,
-            style: TextStyle(
-              color: Colors.black,
-              fontSize: 18,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
+  // ฟังก์ชันสร้างกล่องคำเตือน
   Widget _buildWarningContainer(
       IconData icon, Color? iconColor, String title, String subtitle) {
     return Container(
@@ -340,6 +392,7 @@ class _RecommendPagesState extends State<RecommendPages> {
     );
   }
 
+  // ฟังก์ชันแปลงเดือน
   String _getMonthName(int month) {
     const monthNames = [
       'January',

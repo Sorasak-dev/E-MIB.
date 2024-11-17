@@ -1,3 +1,4 @@
+import 'package:emib_hospital/user/firstpage/notification_page.dart';
 import 'package:flutter/material.dart';
 import 'package:emib_hospital/pages/exercise_screen.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -47,6 +48,14 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
+  // ฟังก์ชันนำทางไปยังหน้า Notification
+  void _navigateToNotifications() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => NotificationPage()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     // ใช้สถานะและวันที่จาก Widget
@@ -64,6 +73,14 @@ class _MyHomePageState extends State<MyHomePage> {
                 expandedHeight: 500.0, // ปรับขนาด SliverAppBar
                 floating: false,
                 pinned: true,
+                actions: [
+                  // ไอคอนกระดิ่ง
+                  IconButton(
+                    icon:
+                        Icon(Icons.notifications_outlined, color: Colors.black),
+                    onPressed: _navigateToNotifications, // นำทางเมื่อกด
+                  ),
+                ],
                 flexibleSpace: FlexibleSpaceBar(
                   centerTitle: true,
                   titlePadding: EdgeInsets.only(bottom: 70.0), // ตำแหน่ง Title
@@ -195,6 +212,24 @@ class _MyHomePageState extends State<MyHomePage> {
       'December'
     ];
     return monthNames[month - 1];
+  }
+}
+
+// หน้าสำหรับ Notification
+class NotificationScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Notifications'),
+      ),
+      body: Center(
+        child: Text(
+          'This is the Notification Screen',
+          style: TextStyle(fontSize: 20),
+        ),
+      ),
+    );
   }
 }
 

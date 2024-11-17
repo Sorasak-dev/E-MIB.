@@ -1,4 +1,4 @@
-import 'package:emib_hospital/Nevigation/notification_page.dart';
+import 'package:emib_hospital/user/firstpage/notification_page.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
