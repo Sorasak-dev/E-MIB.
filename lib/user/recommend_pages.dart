@@ -7,6 +7,7 @@ class RecommendPages extends StatefulWidget {
   final int? dia;
   final int? pul;
   final String? status;
+  final VoidCallback onClear;
 
   const RecommendPages({
     Key? key,
@@ -15,6 +16,7 @@ class RecommendPages extends StatefulWidget {
     this.dia,
     this.pul,
     this.status,
+    required this.onClear,
   }) : super(key: key);
 
   @override
@@ -22,7 +24,6 @@ class RecommendPages extends StatefulWidget {
 }
 
 class _RecommendPagesState extends State<RecommendPages> {
-  // ตัวแปรใน State
   DateTime? _selectedDate;
   int? _sys;
   int? _dia;
@@ -32,7 +33,6 @@ class _RecommendPagesState extends State<RecommendPages> {
   @override
   void initState() {
     super.initState();
-    // ตั้งค่าข้อมูลเริ่มต้นจาก Widget
     _selectedDate = widget.selectedDate;
     _sys = widget.sys;
     _dia = widget.dia;
@@ -40,7 +40,6 @@ class _RecommendPagesState extends State<RecommendPages> {
     _status = widget.status;
   }
 
-  // ฟังก์ชันลบข้อมูล
   void _clearData() {
     setState(() {
       _selectedDate = null;
@@ -49,6 +48,8 @@ class _RecommendPagesState extends State<RecommendPages> {
       _pul = null;
       _status = null;
     });
+
+    widget.onClear(); // เรียก callback เพื่อเคลียร์ข้อมูลใน MainScreen
   }
 
   // กำหนดสีของสถานะ
@@ -75,17 +76,6 @@ class _RecommendPagesState extends State<RecommendPages> {
             padding: const EdgeInsets.all(25.0),
             child: Column(
               children: [
-                // ไอคอนแจ้งเตือน
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Icon(
-                      Icons.notifications,
-                      color: Colors.black,
-                    ),
-                  ],
-                ),
-
                 // วันที่และสถานะ
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 16.0),

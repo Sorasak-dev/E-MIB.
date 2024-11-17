@@ -16,7 +16,21 @@ class _BloodPressureLoggerState extends State<BloodPressureLogger> {
   final TextEditingController _diaController = TextEditingController();
   final TextEditingController _pulController = TextEditingController();
 
-  // ดึงสถานะความดันโลหิต
+  final List<String> _months = [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December'
+  ];
+
   String getStatus(int sys, int dia) {
     if (sys < 90 || dia < 60) {
       return 'Low';
@@ -27,7 +41,6 @@ class _BloodPressureLoggerState extends State<BloodPressureLogger> {
     }
   }
 
-  // เมธอดบันทึกข้อมูล
   void _saveRecord() {
     if (validateInput()) {
       int sys = int.parse(_sysController.text);
@@ -36,10 +49,8 @@ class _BloodPressureLoggerState extends State<BloodPressureLogger> {
 
       String status = getStatus(sys, dia);
 
-      // เรียกใช้ฟังก์ชัน onSave เพื่อส่งข้อมูลกลับไป
       widget.onSave(_selectedDay, sys, dia, pul, status);
 
-      // แสดงข้อความแจ้งเตือน
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Record Saved!')),
       );
@@ -48,7 +59,6 @@ class _BloodPressureLoggerState extends State<BloodPressureLogger> {
     }
   }
 
-  // ตรวจสอบข้อมูลการป้อน
   bool validateInput() {
     if (_sysController.text.isEmpty ||
         _diaController.text.isEmpty ||
@@ -72,39 +82,79 @@ class _BloodPressureLoggerState extends State<BloodPressureLogger> {
     return true;
   }
 
-  // ล้างข้อมูลในช่องกรอก
   void _clearFields() {
     _sysController.clear();
     _diaController.clear();
     _pulController.clear();
   }
 
+  void _showMonthPicker() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Select Month'),
+          content: Container(
+            width: double.maxFinite,
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: _months.length,
+              itemBuilder: (BuildContext context, int index) {
+                return ListTile(
+                  title: Text(_months[index]),
+                  onTap: () {
+                    setState(() {
+                      _selectedDay = DateTime(_selectedDay.year, index + 1, 1);
+                    });
+                    Navigator.of(context).pop(); // ปิด Dialog
+                    Navigator.of(context).pop(); // ปิด Drawer
+                  },
+                );
+              },
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: Drawer(
+        child: ListView(
+          children: [
+            ListTile(
+              leading: Icon(Icons.calendar_today, color: Colors.orangeAccent),
+              title: Text('Month'),
+              onTap: _showMonthPicker,
+            ),
+            // เพิ่มตัวเลือกอื่นๆ ใน Drawer ได้ที่นี่
+          ],
+        ),
+      ),
       body: SafeArea(
         child: Column(
           children: [
-            // แถบด้านบน
             Padding(
               padding:
                   const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  IconButton(
-                    icon: Icon(Icons.menu),
-                    onPressed: () {},
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.notifications_outlined),
-                    onPressed: () {},
+                  Builder(
+                    builder: (context) {
+                      return IconButton(
+                        icon: Icon(Icons.menu),
+                        onPressed: () {
+                          Scaffold.of(context).openDrawer();
+                        },
+                      );
+                    },
                   ),
                 ],
               ),
             ),
-
-            // ปฏิทิน
             Container(
               padding: const EdgeInsets.all(16.0),
               decoration: BoxDecoration(
@@ -161,8 +211,6 @@ class _BloodPressureLoggerState extends State<BloodPressureLogger> {
               ),
             ),
             SizedBox(height: 20),
-
-            // แถบป้อนข้อมูล
             Expanded(
               child: SingleChildScrollView(
                 child: Container(
@@ -190,7 +238,7 @@ class _BloodPressureLoggerState extends State<BloodPressureLogger> {
                               color: Colors.orangeAccent),
                           SizedBox(width: 8),
                           Text(
-                            '${_selectedDay.day} ${_getMonthName(_selectedDay.month)} ${_selectedDay.year}',
+                            '${_selectedDay.day} ${_months[_selectedDay.month - 1]} ${_selectedDay.year}',
                             style: TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
@@ -240,7 +288,6 @@ class _BloodPressureLoggerState extends State<BloodPressureLogger> {
     );
   }
 
-  // ช่องป้อนข้อมูล
   Widget _buildTextField(
       String label, TextEditingController controller, IconData icon) {
     return Column(
@@ -266,24 +313,5 @@ class _BloodPressureLoggerState extends State<BloodPressureLogger> {
         ),
       ],
     );
-  }
-
-  // แปลงเดือนเป็นชื่อ
-  String _getMonthName(int month) {
-    const monthNames = [
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December'
-    ];
-    return monthNames[month - 1];
   }
 }

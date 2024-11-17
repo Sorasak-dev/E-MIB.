@@ -34,7 +34,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  // สีสำหรับสถานะต่างๆ
+  // ฟังก์ชันคืนค่าสีตามสถานะ
   Color getStatusColor(String? status) {
     switch (status) {
       case 'Low':
@@ -44,23 +44,16 @@ class _MyHomePageState extends State<MyHomePage> {
       case 'Normal':
         return Colors.green;
       default:
-        return Colors.grey; // หากไม่มีสถานะ
+        return Colors.grey; // หากไม่มีสถานะ (Default)
     }
-  }
-
-  // ฟังก์ชันนำทางไปยังหน้า Notification
-  void _navigateToNotifications() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => NotificationPage()),
-    );
   }
 
   @override
   Widget build(BuildContext context) {
     // ใช้สถานะและวันที่จาก Widget
-    String status = widget.status ?? 'No Data'; // สถานะค่าเริ่มต้น
-    DateTime date = widget.date ?? DateTime.now(); // วันที่ค่าเริ่มต้น
+    String status = widget.status ?? 'No Data'; // ถ้าไม่มีสถานะ ให้แสดง No Data
+    DateTime date =
+        widget.date ?? DateTime.now(); // ถ้าไม่มีวันที่ ใช้วันที่ปัจจุบัน
 
     return DefaultTabController(
       length: 2, // จำนวนแท็บ
@@ -70,20 +63,27 @@ class _MyHomePageState extends State<MyHomePage> {
             return <Widget>[
               SliverAppBar(
                 backgroundColor: Colors.lightBlue[100],
-                expandedHeight: 500.0, // ปรับขนาด SliverAppBar
+                expandedHeight: 500.0, // ขนาด SliverAppBar
                 floating: false,
                 pinned: true,
                 actions: [
-                  // ไอคอนกระดิ่ง
+                  // ไอคอน Notification
                   IconButton(
                     icon:
                         Icon(Icons.notifications_outlined, color: Colors.black),
-                    onPressed: _navigateToNotifications, // นำทางเมื่อกด
+                    onPressed: () {
+                      // เพิ่มฟังก์ชันนำทางไปหน้า Notification
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => NotificationPage()),
+                      );
+                    },
                   ),
                 ],
                 flexibleSpace: FlexibleSpaceBar(
                   centerTitle: true,
-                  titlePadding: EdgeInsets.only(bottom: 70.0), // ตำแหน่ง Title
+                  titlePadding: EdgeInsets.only(bottom: 70.0),
                   background: Stack(
                     children: [
                       ClipPath(
@@ -112,6 +112,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                       color: Colors.black,
                                     ),
                                   ),
+                                  SizedBox(height: 10),
 
                                   // สถานะ
                                   Text(
@@ -122,10 +123,9 @@ class _MyHomePageState extends State<MyHomePage> {
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
-
                                   SizedBox(height: 10),
 
-                                  // วงกลมที่เปลี่ยนสีตามสถานะ
+                                  // วงกลมเปลี่ยนสีตามสถานะ
                                   Container(
                                     width: 200,
                                     height: 200,
@@ -166,18 +166,20 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                 ),
                 bottom: PreferredSize(
-                  preferredSize: Size.fromHeight(50.0), // ความสูงของ TabBar
+                  preferredSize: Size.fromHeight(50.0),
                   child: TabBar(
                     labelColor: Colors.blue,
                     unselectedLabelColor: Colors.grey,
                     indicatorColor: Colors.blue,
                     tabs: [
                       Tab(
-                          icon: FaIcon(FontAwesomeIcons.carrot),
-                          text: "HealthFood for you"),
+                        icon: FaIcon(FontAwesomeIcons.carrot),
+                        text: "HealthFood for you",
+                      ),
                       Tab(
-                          icon: FaIcon(FontAwesomeIcons.dumbbell),
-                          text: "Health inside"),
+                        icon: FaIcon(FontAwesomeIcons.dumbbell),
+                        text: "Health inside",
+                      ),
                     ],
                   ),
                 ),
@@ -186,8 +188,8 @@ class _MyHomePageState extends State<MyHomePage> {
           },
           body: TabBarView(
             children: [
-              AttractionsScreen(), // AttractionsScreen
-              ExerciseScreen(), // ExerciseScreen
+              AttractionsScreen(), // หน้าแรก
+              ExerciseScreen(), // หน้าสอง
             ],
           ),
         ),
@@ -195,7 +197,7 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  // ฟังก์ชันสำหรับดึงชื่อเดือน
+  // ฟังก์ชันดึงชื่อเดือน
   String _getMonthName(int month) {
     const monthNames = [
       'January',
@@ -212,24 +214,6 @@ class _MyHomePageState extends State<MyHomePage> {
       'December'
     ];
     return monthNames[month - 1];
-  }
-}
-
-// หน้าสำหรับ Notification
-class NotificationScreen extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Notifications'),
-      ),
-      body: Center(
-        child: Text(
-          'This is the Notification Screen',
-          style: TextStyle(fontSize: 20),
-        ),
-      ),
-    );
   }
 }
 

@@ -109,7 +109,7 @@ class _SettingsPageState extends State<SettingsPage> {
         actions: [
           IconButton(
             icon: const Icon(
-              Icons.notifications,
+              Icons.notifications_outlined,
               color: Colors.black,
             ),
             onPressed: () {

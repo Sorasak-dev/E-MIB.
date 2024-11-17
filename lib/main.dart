@@ -34,7 +34,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: AuthCheck(),
+      home: MainScreen(),
       theme: ThemeData(
         colorScheme: ColorScheme.fromSwatch().copyWith(
           primary: const Color(0xFF4C7766),
@@ -57,14 +57,30 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  int _currentBottomIndex = 2;
-  final PageController _pageController = PageController(initialPage: 2);
+  int _currentBottomIndex = 0;
+  final PageController _pageController = PageController(initialPage: 0);
 
   DateTime? _selectedDate;
   int? _sys;
   int? _dia;
   int? _pul;
   String? _status;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Foreground message handler
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      print("Foreground Message Received: ${message.notification?.title}");
+
+      // Add notification to NotificationService
+      NotificationService.addNotification(message);
+
+      // Show notification locally
+      _showNotification(message);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -77,15 +93,16 @@ class _MainScreenState extends State<MainScreen> {
           });
         },
         children: [
-          MyHomePage(),
+          MyHomePage(
+            status: _status, // ส่งค่าสถานะไปยัง MyHomePage
+            date: _selectedDate, // ส่งวันที่ไปยัง MyHomePage
+          ),
           FavoritePage(
-            favorites: [], // ใส่รายการ Favorite ที่ต้องการ (สามารถใช้ List ว่างได้)
+            favorites: [],
             onFavoriteToggle: (item) {
-              // ฟังก์ชันสำหรับเปิด/ปิดสถานะ Favorite
               print('Toggled favorite for $item');
             },
             onDelete: (item) {
-              // ฟังก์ชันสำหรับลบรายการ
               print('Deleted favorite item: $item');
             },
           ),
@@ -107,6 +124,15 @@ class _MainScreenState extends State<MainScreen> {
             dia: _dia,
             pul: _pul,
             status: _status,
+            onClear: () {
+              setState(() {
+                _selectedDate = null;
+                _sys = null;
+                _dia = null;
+                _pul = null;
+                _status = null;
+              });
+            },
           ),
           SettingsPage(),
         ],
@@ -118,7 +144,7 @@ class _MainScreenState extends State<MainScreen> {
             height: 60,
             child: BottomNavigationBar(
               currentIndex: _currentBottomIndex,
-              onTap: _onBottomNavigationTapped, // ใช้ฟังก์ชันนี้
+              onTap: _onBottomNavigationTapped,
               backgroundColor: Color(0xFFcacafe),
               type: BottomNavigationBarType.fixed,
               items: const [
@@ -153,17 +179,14 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
-  // ฟังก์ชันจัดการการเปลี่ยนหน้า
   void _onBottomNavigationTapped(int index) {
     setState(() {
       _currentBottomIndex = index;
     });
 
-    // ใช้ Future.microtask เพื่อเลี่ยงข้อผิดพลาด jumpToPage
     Future.microtask(() => _pageController.jumpToPage(index));
   }
 
-  // ฟังก์ชันสำหรับสร้างไอคอนที่นูนขึ้นเมื่อถูกเลือก
   Widget _buildFloatingIcon(BuildContext context, int index) {
     double leftPosition;
     IconData icon;
@@ -196,26 +219,26 @@ class _MainScreenState extends State<MainScreen> {
     }
 
     return Positioned(
-      top: -20, // ยกไอคอนขึ้น
+      top: -20,
       left: leftPosition - 30,
       child: Container(
         padding: EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Color(0xFFc4e9fc), // สีพื้นหลังของไอคอนที่ถูกเลือก
+          color: Color(0xFFc4e9fc),
           borderRadius: BorderRadius.circular(10),
           boxShadow: [
             BoxShadow(
               color: Colors.blue.withOpacity(0.3),
               spreadRadius: 1,
               blurRadius: 2,
-              offset: Offset(1, 3), // ตำแหน่งเงา
+              offset: Offset(1, 3),
             ),
           ],
         ),
         child: Icon(
           icon,
           color: Colors.black,
-          size: 28, // ขนาดของไอคอนที่นูนขึ้น
+          size: 28,
         ),
       ),
     );
