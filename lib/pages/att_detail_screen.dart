@@ -42,47 +42,45 @@ class _AttractionDetailScreenState extends State<AttractionDetailScreen> {
   }
 
   Future<void> _fetchAttractionDetail() async {
-  try {
-    final response = await http.get(
-      Uri.parse('https://my.api.mockaroo.com/food.json?key=9a646df0'),
-    );
+    try {
+      final response = await http.get(
+        Uri.parse('https://my.api.mockaroo.com/food.json?key=9a646df0'),
+      );
 
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      print("Data from API: $data"); // พิมพ์ข้อมูล API ที่ได้มาเพื่อตรวจสอบ
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        print("Data from API: $data"); // พิมพ์ข้อมูล API ที่ได้มาเพื่อตรวจสอบ
 
-      if (data is List && data.isNotEmpty) {
-        setState(() {
-          _attractionDetail = data.firstWhere((item) => item['id'] == widget.id, orElse: () => null);
-        });
+        if (data is List && data.isNotEmpty) {
+          setState(() {
+            _attractionDetail = data.firstWhere(
+                (item) => item['id'] == widget.id,
+                orElse: () => null);
+          });
+        } else {
+          setState(() {
+            _attractionDetail = {};
+          });
+        }
       } else {
+        print("Failed to load data: ${response.statusCode}");
         setState(() {
           _attractionDetail = {};
         });
       }
-    } else {
-      print("Failed to load data: ${response.statusCode}");
+    } catch (e) {
+      print("Error: $e");
       setState(() {
         _attractionDetail = {};
       });
     }
-  } catch (e) {
-    print("Error: $e");
-    setState(() {
-      _attractionDetail = {};
-    });
   }
-}
-
-
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('รายละเอียดอาหาร'),
-
-
       ),
       body: _attractionDetail == null
           ? const Center(child: CircularProgressIndicator())
@@ -111,7 +109,8 @@ class _AttractionDetailScreenState extends State<AttractionDetailScreen> {
                       const SizedBox(height: 16),
                       Text(
                         _attractionDetail!['food_name'] ?? 'ไม่ระบุชื่ออาหาร',
-                        style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                        style: const TextStyle(
+                            fontSize: 24, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 8),
                       Text(

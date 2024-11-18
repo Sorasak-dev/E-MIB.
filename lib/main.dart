@@ -1,3 +1,4 @@
+import 'package:emib_hospital/user/History.dart';
 import 'package:emib_hospital/user/favorite_page.dart';
 import 'package:emib_hospital/user/homepage.dart';
 import 'package:emib_hospital/user/firstpage/firebase_notifications.dart';
@@ -64,6 +65,8 @@ class _MainScreenState extends State<MainScreen> {
   int _currentBottomIndex = 0;
   final PageController _pageController = PageController(initialPage: 0);
 
+  List<Map<String, dynamic>> _records = [];
+
   DateTime? _selectedDate;
   int? _sys;
   int? _dia;
@@ -101,13 +104,12 @@ class _MainScreenState extends State<MainScreen> {
             status: _status, // ส่งค่าสถานะไปยัง MyHomePage
             date: _selectedDate, // ส่งวันที่ไปยัง MyHomePage
           ),
-          FavoritePage(
-            favorites: [],
-            onFavoriteToggle: (item) {
-              print('Toggled favorite for $item');
-            },
-            onDelete: (item) {
-              print('Deleted favorite item: $item');
+          HistoryPage(
+            records: _records, // ส่งประวัติที่บันทึกไปยัง HistoryPage
+            onDelete: (index) {
+              setState(() {
+                _records.removeAt(index); // ลบข้อมูลใน List
+              });
             },
           ),
           BloodPressureLogger(
@@ -119,6 +121,14 @@ class _MainScreenState extends State<MainScreen> {
                 _pul = pul;
                 _status = status;
                 _pageController.jumpToPage(3);
+                // เพิ่มข้อมูลบันทึกในประวัติ
+                _records.add({
+                  'date': selectedDate,
+                  'sys': sys,
+                  'dia': dia,
+                  'pul': pul,
+                  'status': status,
+                });
               });
             },
           ),
@@ -157,8 +167,8 @@ class _MainScreenState extends State<MainScreen> {
                   label: 'Articles',
                 ),
                 BottomNavigationBarItem(
-                  icon: Icon(Icons.favorite),
-                  label: 'Favorites',
+                  icon: Icon(Icons.history),
+                  label: 'History',
                 ),
                 BottomNavigationBarItem(
                   icon: Icon(Icons.calendar_today),
@@ -202,7 +212,7 @@ class _MainScreenState extends State<MainScreen> {
         break;
       case 1:
         leftPosition = MediaQuery.of(context).size.width * 0.3;
-        icon = Icons.favorite;
+        icon = Icons.history;
         break;
       case 2:
         leftPosition = MediaQuery.of(context).size.width * 0.5;
