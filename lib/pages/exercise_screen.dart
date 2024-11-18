@@ -84,7 +84,7 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Recommand Exercise'),
+        title: const Text('Recommend Exercise'),
         actions: [
           IconButton(
             icon: const Icon(Icons.favorite),

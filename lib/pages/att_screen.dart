@@ -110,7 +110,7 @@ class _AttractionsScreenState extends State<AttractionsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Recommand Food'),
+        title: const Text('Recommend Food'),
         actions: [
           IconButton(
             icon: const Icon(Icons.favorite),
