@@ -44,7 +44,7 @@ class _AttractionDetailScreenState extends State<AttractionDetailScreen> {
   Future<void> _fetchAttractionDetail() async {
     try {
       final response = await http.get(
-        Uri.parse('https://my.api.mockaroo.com/food.json?key=9a646df0'),
+        Uri.parse('https://my.api.mockaroo.com/f.json?key=f3d1ec70'),
       );
 
       if (response.statusCode == 200) {
