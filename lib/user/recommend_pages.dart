@@ -293,7 +293,7 @@ class _RecommendPagesState extends State<RecommendPages> {
           {
             'icon': FontAwesomeIcons.smile,
             'color': Colors.green,
-            'title': 'รักษาอาหารที่มีประโยชน์',
+            'title': 'รับประทานอาหารที่มีประโยชน์',
             'subtitle': 'ทานอาหารครบ 5 หมู่เพื่อสุขภาพที่ดี',
           },
           {

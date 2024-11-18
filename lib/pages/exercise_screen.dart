@@ -2,7 +2,11 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:emib_hospital/pages/exercise_detail_screen.dart';
 import 'package:http/http.dart' as http;
-import 'package:emib_hospital/user/favorite_page.dart';
+import 'package:emib_hospital/pages/favorite_page.dart';
+import 'dart:convert';
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ExerciseScreen extends StatefulWidget {
   const ExerciseScreen({super.key});
@@ -15,13 +19,14 @@ class ExerciseScreen extends StatefulWidget {
 
 class _ExerciseScreenState extends State<ExerciseScreen> {
   List<dynamic> _exercises = [];
-  List<dynamic> _favoriteExercise = []; // รายการโปรด
-  Set<int> _favoritedIds = Set<int>(); // ใช้เก็บ ID ของรายการโปรด
+  List<dynamic> _favoriteExercise = [];
+  Set<int> _favoritedIds = Set<int>();
 
   @override
   void initState() {
     super.initState();
     _fetchExercise();
+    _loadFavorites(); // โหลดข้อมูลรายการโปรดเมื่อเริ่มแอป
   }
 
   Future<void> _fetchExercise() async {
@@ -32,15 +37,10 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-
         if (data is List) {
-          if (mounted) {
-            setState(() {
-              _exercises = data;
-            });
-          }
-        } else {
-          throw Exception('Unexpected JSON format: expected a List');
+          setState(() {
+            _exercises = data;
+          });
         }
       } else {
         throw Exception('Failed to load data: ${response.statusCode}');
@@ -50,24 +50,22 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
     }
   }
 
-  /*String getFoodEmoji(String category) {
-    switch (category.toLowerCase()) {
-      case 'grains':
-        return '🌾';
-      case 'vegetable':
-        return '🥦';
-      case 'dairy':
-        return '🧀';
-      case 'fruit':
-        return '🍎';
-      case 'meat':
-        return '🍖';
-      case 'drink':
-        return '🥤';
-      default:
-        return '🍽️';
-    }
-  }*/
+  Future<void> _saveFavorites() async {
+    final prefs = await SharedPreferences.getInstance();
+    final favoriteData = _favoriteExercise.map((e) => json.encode(e)).toList();
+    await prefs.setStringList('favoriteExercises', favoriteData);
+  }
+
+  Future<void> _loadFavorites() async {
+    final prefs = await SharedPreferences.getInstance();
+    final favoriteData = prefs.getStringList('favoriteExercises') ?? [];
+    setState(() {
+      _favoriteExercise = favoriteData.map((e) => json.decode(e)).toList();
+      _favoritedIds = _favoriteExercise
+          .map<int>((item) => item['id'] as int)
+          .toSet(); // อัปเดต ID ของรายการโปรด
+    });
+  }
 
   void _toggleFavorite(dynamic exercise) {
     setState(() {
@@ -78,13 +76,7 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
         _favoritedIds.add(exercise['id']);
         _favoriteExercise.add(exercise);
       }
-    });
-  }
-
-  void _deleteFromFavorites(dynamic exercise) {
-    setState(() {
-      _favoritedIds.remove(exercise['id']);
-      _favoriteExercise.removeWhere((item) => item['id'] == exercise['id']);
+      _saveFavorites(); // บันทึกข้อมูลเมื่อมีการเปลี่ยนแปลง
     });
   }
 
@@ -103,7 +95,11 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
                   builder: (context) => FavoritePage(
                     favorites: _favoriteExercise,
                     onFavoriteToggle: _toggleFavorite,
-                    onDelete: _deleteFromFavorites,
+                    onDelete: (exercise) {
+                      setState(() {
+                        _toggleFavorite(exercise);
+                      });
+                    },
                   ),
                 ),
               );
@@ -118,13 +114,6 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
           bool isFavorited = _favoritedIds.contains(exercise['id']);
 
           return ListTile(
-            /*leading: CircleAvatar(
-              backgroundColor: Colors.grey[200],
-              child: Text(
-                getFoodEmoji(exercise['food_categoryname'] ?? ''),
-                style: const TextStyle(fontSize: 24),
-              ),
-            ),*/
             title: Text(exercise['Exercise_Name']),
             subtitle: Text(
               'กลุ่มเป้าหมาย: ${exercise['Target Group']}\n${exercise['Description']}',

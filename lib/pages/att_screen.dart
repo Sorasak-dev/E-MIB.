@@ -1,8 +1,9 @@
 import 'dart:convert';
+import 'package:emib_hospital/pages/FavoriteFoodPage.dart';
 import 'package:flutter/material.dart';
 import 'package:emib_hospital/pages/att_detail_screen.dart';
 import 'package:http/http.dart' as http;
-import 'package:emib_hospital/user/favorite_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AttractionsScreen extends StatefulWidget {
   const AttractionsScreen({super.key});
@@ -15,13 +16,15 @@ class AttractionsScreen extends StatefulWidget {
 
 class _AttractionsScreenState extends State<AttractionsScreen> {
   List<dynamic> _attractions = [];
-  List<dynamic> _favoriteAttractions = []; // รายการโปรด
-  Set<int> _favoritedIds = Set<int>(); // ใช้เก็บ ID ของรายการโปรด
+  List<dynamic> _favoriteAttractions = [];
+  Set<int> _favoritedIds = Set<int>();
 
   @override
   void initState() {
     super.initState();
-    _fetchAttractions();
+    _loadFavorites().then((_) {
+      _fetchAttractions();
+    });
   }
 
   Future<void> _fetchAttractions() async {
@@ -33,10 +36,19 @@ class _AttractionsScreenState extends State<AttractionsScreen> {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
 
-        // ตรวจสอบว่า JSON ที่ได้เป็น List หรือไม่
         if (data is List) {
           setState(() {
             _attractions = data;
+
+            // ตรวจสอบว่ารายการโปรดยังคงอยู่ในข้อมูลที่โหลดจาก API
+            _favoriteAttractions = _favoriteAttractions
+                .where((item) => _attractions
+                    .any((attraction) => attraction['id'] == item['id']))
+                .toList();
+
+            _favoritedIds = _favoriteAttractions
+                .map<int>((item) => item['id'] as int)
+                .toSet();
           });
         } else {
           throw Exception('Unexpected JSON format: expected a List');
@@ -49,23 +61,26 @@ class _AttractionsScreenState extends State<AttractionsScreen> {
     }
   }
 
-  String getFoodEmoji(String category) {
-    switch (category.toLowerCase()) {
-      case 'grains':
-        return '🌾';
-      case 'vegetable':
-        return '🥦';
-      case 'dairy':
-        return '🧀';
-      case 'fruit':
-        return '🍎';
-      case 'meat':
-        return '🍖';
-      case 'drink':
-        return '🥤';
-      default:
-        return '🍽️';
-    }
+  Future<void> _saveFavorites() async {
+    final prefs = await SharedPreferences.getInstance();
+    final favoriteData =
+        _favoriteAttractions.map((e) => json.encode(e)).toList();
+    await prefs.setStringList('favoriteFoods', favoriteData);
+  }
+
+  Future<void> _loadFavorites() async {
+    final prefs = await SharedPreferences.getInstance();
+    final favoriteData = prefs.getStringList('favoriteFoods') ?? [];
+    final loadedFavorites =
+        favoriteData.map((e) => json.decode(e)).toList(); // โหลดข้อมูลโปรด
+
+    setState(() {
+      _favoriteAttractions = loadedFavorites;
+
+      // อัปเดต Set ของ ID
+      _favoritedIds =
+          _favoriteAttractions.map<int>((item) => item['id'] as int).toSet();
+    });
   }
 
   void _toggleFavorite(dynamic attraction) {
@@ -78,6 +93,7 @@ class _AttractionsScreenState extends State<AttractionsScreen> {
         _favoritedIds.add(attraction['id']);
         _favoriteAttractions.add(attraction);
       }
+      _saveFavorites(); // บันทึกข้อมูลทุกครั้งที่เปลี่ยนแปลง
     });
   }
 
@@ -86,6 +102,7 @@ class _AttractionsScreenState extends State<AttractionsScreen> {
       _favoritedIds.remove(attraction['id']);
       _favoriteAttractions
           .removeWhere((item) => item['id'] == attraction['id']);
+      _saveFavorites(); // บันทึกข้อมูลหลังการลบ
     });
   }
 
@@ -101,7 +118,7 @@ class _AttractionsScreenState extends State<AttractionsScreen> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => FavoritePage(
+                  builder: (context) => FavoriteFoodPage(
                     favorites: _favoriteAttractions,
                     onFavoriteToggle: _toggleFavorite,
                     onDelete: _deleteFromFavorites,
@@ -152,5 +169,24 @@ class _AttractionsScreenState extends State<AttractionsScreen> {
         },
       ),
     );
+  }
+
+  String getFoodEmoji(String category) {
+    switch (category.toLowerCase()) {
+      case 'grains':
+        return '🌾';
+      case 'vegetable':
+        return '🥦';
+      case 'dairy':
+        return '🧀';
+      case 'fruit':
+        return '🍎';
+      case 'meat':
+        return '🍖';
+      case 'drink':
+        return '🥤';
+      default:
+        return '🍽️';
+    }
   }
 }

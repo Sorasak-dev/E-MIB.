@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-class FavoritePage extends StatefulWidget {
+
+class FavoriteFoodPage extends StatefulWidget {
   final List<dynamic> favorites;
   final Function(dynamic) onFavoriteToggle;
   final Function(dynamic) onDelete; // ฟังก์ชันสำหรับลบรายการ
 
-  const FavoritePage({
+  const FavoriteFoodPage({
     super.key,
     required this.favorites,
     required this.onFavoriteToggle,
@@ -12,10 +13,10 @@ class FavoritePage extends StatefulWidget {
   });
 
   @override
-  State<FavoritePage> createState() => _FavoritePageState();
+  State<FavoriteFoodPage> createState() => _FavoriteFoodPageState();
 }
 
-class _FavoritePageState extends State<FavoritePage> {
+class _FavoriteFoodPageState extends State<FavoriteFoodPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -27,29 +28,30 @@ class _FavoritePageState extends State<FavoritePage> {
           : ListView.builder(
               itemCount: widget.favorites.length,
               itemBuilder: (context, index) {
-                final attraction = widget.favorites[index];
+                final food = widget.favorites[index];
 
                 return ListTile(
                   leading: CircleAvatar(
                     backgroundColor: Colors.grey[200],
                     child: Text(
-                      getFoodEmoji(attraction['food_categoryname'] ?? ''),
+                      getFoodEmoji(food['food_categoryname'] ?? ''),
                       style: const TextStyle(fontSize: 24),
                     ),
                   ),
-                  title: Text(attraction['food_name']),
+                  title: Text(food['food_name'] ?? 'ไม่มีชื่ออาหาร'),
                   subtitle: Text(
-                    'หมวดหมู่: ${attraction['food_categoryname']}\n${attraction['Description']}',
+                    'หมวดหมู่: ${food['food_categoryname'] ?? 'ไม่ระบุ'}\n'
+                    '${food['Description'] ?? 'ไม่มีคำอธิบาย'}',
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
                   trailing: IconButton(
                     icon: const Icon(Icons.delete),
                     onPressed: () {
-                      widget.onDelete(attraction); // ลบรายการจากรายการโปรด
+                      widget.onDelete(food); // ลบรายการจากรายการโปรด
                       setState(() {
-                        // อัปเดตหน้า FavoritePage ทันที
-                        widget.favorites.remove(attraction);
+                        // อัปเดตหน้า FavoriteFoodPage ทันที
+                        widget.favorites.remove(food);
                       });
                     },
                   ),
