@@ -102,12 +102,12 @@ class _AttractionDetailScreenState extends State<AttractionDetailScreen> {
                           fit: BoxFit.cover,
                         )
                       else
-                        Image.asset(
+                        /*Image.asset(
                           'assets/default_image.jpg', // รูปภาพเริ่มต้นที่จัดเตรียมในโปรเจค
                           height: 200,
                           width: double.infinity,
                           fit: BoxFit.cover,
-                        ),
+                        ),*/
                       const SizedBox(height: 16),
                       Text(
                         _attractionDetail!['food_name'] ?? 'ไม่ระบุชื่ออาหาร',
