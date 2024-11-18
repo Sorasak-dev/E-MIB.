@@ -25,11 +25,28 @@ class _AttractionsScreenState extends State<AttractionsScreen> {
   }
 
   Future<void> _fetchAttractions() async {
-    final response = await http.get(
-        Uri.parse('https://my.api.mockaroo.com/food_name.json?key=4ce583c0'));
-    setState(() {
-      _attractions = json.decode(response.body);
-    });
+    try {
+      final response = await http.get(
+        Uri.parse('https://my.api.mockaroo.com/food_name.json?key=4ce583c0'),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+
+        // ตรวจสอบว่า JSON ที่ได้เป็น List หรือไม่
+        if (data is List) {
+          setState(() {
+            _attractions = data;
+          });
+        } else {
+          throw Exception('Unexpected JSON format: expected a List');
+        }
+      } else {
+        throw Exception('Failed to load data: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error fetching attractions: $e');
+    }
   }
 
   String getFoodEmoji(String category) {

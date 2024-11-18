@@ -25,11 +25,29 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
   }
 
   Future<void> _fetchExercise() async {
-    final response = await http.get(
-        Uri.parse('https://my.api.mockaroo.com/exercise.json?key=4ce583c0'));
-    setState(() {
-      _exercises = json.decode(response.body);
-    });
+    try {
+      final response = await http.get(
+        Uri.parse('https://my.api.mockaroo.com/exercise.json?key=4ce583c0'),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+
+        if (data is List) {
+          if (mounted) {
+            setState(() {
+              _exercises = data;
+            });
+          }
+        } else {
+          throw Exception('Unexpected JSON format: expected a List');
+        }
+      } else {
+        throw Exception('Failed to load data: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error fetching exercises: $e');
+    }
   }
 
   /*String getFoodEmoji(String category) {

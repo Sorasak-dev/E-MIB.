@@ -10,11 +10,15 @@ import 'package:emib_hospital/user/homepage.dart';
 import 'package:emib_hospital/user/recommend_pages.dart';
 import 'package:emib_hospital/user/calender.dart';
 import 'package:emib_hospital/user/firstpage/setting.dart';
+import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
 
+  // Load saved notifications
+  await NotificationService.loadNotificationsFromLocalStorage();
   // Background message handler
   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
