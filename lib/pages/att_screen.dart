@@ -30,7 +30,7 @@ class _AttractionsScreenState extends State<AttractionsScreen> {
   Future<void> _fetchAttractions() async {
     try {
       final response = await http.get(
-        Uri.parse('https://my.api.mockaroo.com/f.json?key=f3d1ec70'),
+        Uri.parse('https://my.api.mockaroo.com/food.json?key=8b86cc20'),
       );
 
       if (response.statusCode == 200) {

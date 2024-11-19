@@ -32,7 +32,7 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
   Future<void> _fetchExercise() async {
     try {
       final response = await http.get(
-        Uri.parse('https://my.api.mockaroo.com/e.json?key=f3d1ec70'),
+        Uri.parse('https://my.api.mockaroo.com/exercise.json?key=8b86cc20'),
       );
 
       if (response.statusCode == 200) {
